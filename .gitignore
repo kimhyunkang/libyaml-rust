@@ -1,0 +1,3 @@
+build/libyaml-*.rlib
+build/libyaml-*.so
+test
