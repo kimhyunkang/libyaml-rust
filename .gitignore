@@ -1,3 +1,5 @@
 build/libyaml-*.rlib
 build/libyaml-*.so
+build/codegen
 test
+src/yaml/type_size.rs

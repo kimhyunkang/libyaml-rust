@@ -5,9 +5,13 @@
 #![crate_type = "dylib"]
 #![crate_type = "rlib"]
 
+#![feature(macro_rules)]
+
 use std::libc;
 
 pub mod ffi;
+pub mod parser;
+mod type_size;
 
 pub fn version_string() -> ~str {
     let c_vsn = unsafe {
@@ -34,6 +38,9 @@ pub fn version() -> (int, int, int) {
 }
 
 mod test {
+    #[cfg(test)]
+    use std::mem;
+
     #[test]
     fn test_version_string() {
         let vsn = super::version_string();
@@ -44,5 +51,15 @@ mod test {
     fn test_version() {
         let vsn = super::version();
         assert!((0, 1, 4) <= vsn && vsn < (0, 2, 0))
+    }
+
+    #[test]
+    fn test_event_size() {
+        assert_eq!(super::type_size::yaml_event_t_size, mem::size_of::<super::ffi::yaml_event_t>())
+    }
+
+    #[test]
+    fn test_parser_size() {
+        assert_eq!(super::type_size::yaml_parser_t_size, mem::size_of::<super::ffi::yaml_parser_t>())
     }
 }
