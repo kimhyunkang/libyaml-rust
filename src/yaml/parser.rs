@@ -23,7 +23,7 @@ pub struct InternalEvent {
 impl Drop for InternalEvent {
     fn drop(&mut self) {
         unsafe {
-            ffi::yaml_event_delete(&mut self.event_mem as *mut ffi::yaml_event_t);
+            ffi::yaml_event_delete(&mut self.event_mem);
         }
     }
 }
@@ -116,11 +116,11 @@ impl<'r> YamlByteParser<'r> {
         };
 
         unsafe {
-            let res = ffi::yaml_parser_initialize(&mut parser.parser_mem as *mut ffi::yaml_parser_t);
+            let res = ffi::yaml_parser_initialize(&mut parser.parser_mem);
             if res == 0 {
                 fail!("failed to initialize yaml_parser_t");
             }
-            ffi::yaml_parser_set_input_string(&mut parser.parser_mem as *mut ffi::yaml_parser_t, bytes.as_ptr() as *ffi::yaml_char_t, bytes.len() as size_t);
+            ffi::yaml_parser_set_input_string(&mut parser.parser_mem, bytes.as_ptr(), bytes.len() as size_t);
         }
 
         parser
@@ -131,7 +131,7 @@ impl<'r> YamlByteParser<'r> {
             event_mem: ffi::yaml_event_t::new()
         };
 
-        let res = ffi::yaml_parser_parse(&mut self.parser_mem as *mut ffi::yaml_parser_t, &mut event.event_mem as *mut ffi::yaml_event_t);
+        let res = ffi::yaml_parser_parse(&mut self.parser_mem, &mut event.event_mem);
         if res == 0 {
             None
         } else {
@@ -226,7 +226,7 @@ impl<'r> YamlByteParser<'r> {
 impl<'r> Drop for YamlByteParser<'r> {
     fn drop(&mut self) {
         unsafe {
-            ffi::yaml_parser_delete(&mut self.parser_mem as *mut ffi::yaml_parser_t);
+            ffi::yaml_parser_delete(&mut self.parser_mem);
         }
     }
 }
