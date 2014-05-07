@@ -390,8 +390,7 @@ fn test_byte_parser() {
 
     loop {
         match stream.next_event() {
-            Ok(YamlStreamEndEvent) => {
-                produced.push(YamlStreamEndEvent);
+            Ok(YamlNoEvent) => {
                 break;
             },
             Ok(evt) => {
@@ -428,8 +427,7 @@ fn test_io_parser() {
 
     loop {
         match stream.next_event() {
-            Ok(YamlStreamEndEvent) => {
-                produced.push(YamlStreamEndEvent);
+            Ok(YamlNoEvent) => {
                 break;
             },
             Ok(evt) => {
@@ -466,8 +464,7 @@ fn test_byte_parser_mapping() {
 
     loop {
         match stream.next_event() {
-            Ok(YamlStreamEndEvent) => {
-                produced.push(YamlStreamEndEvent);
+            Ok(YamlNoEvent) => {
                 break;
             },
             Ok(evt) => {
