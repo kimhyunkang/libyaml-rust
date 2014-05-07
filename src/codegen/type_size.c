@@ -3,7 +3,8 @@
 
 int main()
 {
-    printf("use std::libc::c_int;\n\n");
+    printf("extern crate libc;\n\n");
+    printf("use libc::c_int;\n\n");
 
     printf("#[allow(non_camel_case_types)]\n");
     printf("pub type yaml_parser_mem_t = [c_int, ..%lu];\n", sizeof(yaml_parser_t) / sizeof(int));
