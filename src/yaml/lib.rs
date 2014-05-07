@@ -5,12 +5,14 @@
 #![crate_type = "dylib"]
 #![crate_type = "rlib"]
 
-#![feature(macro_rules)]
+#![feature(globs)]
 
 use std::libc;
 
 pub mod ffi;
+pub mod event;
 pub mod parser;
+
 mod type_size;
 
 pub fn version_string() -> ~str {
