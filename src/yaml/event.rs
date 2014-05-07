@@ -6,7 +6,7 @@ use std::c_str::CString;
 use std::c_vec::CVec;
 
 pub struct InternalEvent {
-    pub event_mem: ffi::yaml_event_t
+    event_mem: ffi::yaml_event_t
 }
 
 impl Drop for InternalEvent {
