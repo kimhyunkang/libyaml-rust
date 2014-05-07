@@ -1,5 +1,7 @@
 build/libyaml-*.rlib
 build/libyaml-*.so
+build/libyaml-*.dylib
+build/libyaml-*.dylib.dSYM
 build/codegen
 test
 src/yaml/type_size.rs
