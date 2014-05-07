@@ -1,6 +1,5 @@
 use ffi;
 pub use ffi::{YamlEncoding, YamlScalarStyle, YamlSequenceStyle};
-use std::libc::size_t;
 use std::cast;
 use std::ptr;
 use std::c_str::CString;
@@ -23,7 +22,7 @@ pub struct InternalEvent {
 impl Drop for InternalEvent {
     fn drop(&mut self) {
         unsafe {
-            ffi::yaml_event_delete(&mut self.event_mem);
+            self.event_mem.delete()
         }
     }
 }
@@ -79,7 +78,7 @@ pub enum YamlEvent {
 }
 
 pub struct YamlEventStream<'r> {
-    parser: ~YamlByteParser<'r>,
+    parser: ~YamlParser<'r>,
     end_stream: bool
 }
 
@@ -105,34 +104,15 @@ impl<'r> Iterator<YamlEvent> for YamlEventStream<'r> {
     }
 }
 
-pub struct YamlByteParser<'r> {
-    parser_mem: ffi::yaml_parser_t,
-}
-
-impl<'r> YamlByteParser<'r> {
-    pub fn init(bytes: &'r [u8]) -> ~YamlByteParser<'r> {
-        let mut parser = ~YamlByteParser {
-            parser_mem: ffi::new_yaml_parser_t(),
-        };
-
-        unsafe {
-            let res = ffi::yaml_parser_initialize(&mut parser.parser_mem);
-            if res == 0 {
-                fail!("failed to initialize yaml_parser_t");
-            }
-            ffi::yaml_parser_set_input_string(&mut parser.parser_mem, bytes.as_ptr(), bytes.len() as size_t);
-        }
-
-        parser
-    }
+pub trait YamlParser<'r> {
+    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut ffi::yaml_parser_t;
 
     unsafe fn parse_event(&mut self) -> Option<YamlEvent> {
         let mut event = InternalEvent {
             event_mem: ffi::yaml_event_t::new()
         };
 
-        let res = ffi::yaml_parser_parse(&mut self.parser_mem, &mut event.event_mem);
-        if res == 0 {
+        if !self.base_parser_ref().parse(&mut event.event_mem) {
             None
         } else {
             Some(match event.event_mem.event_type {
@@ -215,7 +195,7 @@ impl<'r> YamlByteParser<'r> {
         }
     }
 
-    pub fn parse(~self) -> YamlEventStream<'r> {
+    fn parse(~self) -> YamlEventStream<'r> {
         YamlEventStream {
             parser: self,
             end_stream: false
@@ -223,10 +203,37 @@ impl<'r> YamlByteParser<'r> {
     }
 }
 
+pub struct YamlByteParser<'r> {
+    base_parser: ffi::yaml_parser_t,
+}
+
+impl<'r> YamlParser<'r> for YamlByteParser<'r> {
+    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut ffi::yaml_parser_t {
+        &mut self.base_parser
+    }
+}
+
+impl<'r> YamlByteParser<'r> {
+    pub fn init(bytes: &'r [u8]) -> ~YamlByteParser<'r> {
+        let mut parser = ~YamlByteParser {
+            base_parser: ffi::yaml_parser_t::new(),
+        };
+
+        unsafe {
+            if !parser.base_parser.initialize() {
+                fail!("failed to initialize yaml_parser_t");
+            }
+            parser.base_parser.set_input_string(bytes.as_ptr(), bytes.len());
+        }
+
+        parser
+    }
+}
+
 impl<'r> Drop for YamlByteParser<'r> {
     fn drop(&mut self) {
         unsafe {
-            ffi::yaml_parser_delete(&mut self.parser_mem);
+            self.base_parser.delete()
         }
     }
 }

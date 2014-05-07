@@ -1,4 +1,4 @@
-pub use type_size::{yaml_parser_t, new_yaml_parser_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t};
+pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t};
 use std::libc::{c_char, c_uchar, c_int, c_void, size_t};
 
 #[allow(non_camel_case_types)]
@@ -94,6 +94,35 @@ impl yaml_mark_t {
 }
 
 #[allow(non_camel_case_types)]
+pub struct yaml_parser_t {
+    opaque: yaml_parser_mem_t
+}
+
+impl yaml_parser_t {
+    pub fn new() -> yaml_parser_t {
+        yaml_parser_t {
+            opaque: new_yaml_parser_mem_t()
+        }
+    }
+
+    pub unsafe fn initialize(&mut self) -> bool {
+        yaml_parser_initialize(self) != 0
+    }
+
+    pub unsafe fn delete(&mut self) {
+        yaml_parser_delete(self);
+    }
+
+    pub unsafe fn set_input_string(&mut self, input: *u8, size: uint) {
+        yaml_parser_set_input_string(self, input, size as size_t);
+    }
+
+    pub unsafe fn parse(&mut self, event: &mut yaml_event_t) -> bool {
+        yaml_parser_parse(self, event) != 0
+    }
+}
+
+#[allow(non_camel_case_types)]
 pub struct yaml_event_t {
     event_type: yaml_event_type_t,
     data: yaml_event_data_t,
@@ -164,6 +193,10 @@ impl yaml_event_t {
             start_mark: yaml_mark_t::new(),
             end_mark: yaml_mark_t::new(),
         }
+    }
+
+    pub unsafe fn delete(&mut self) {
+        yaml_event_delete(self);
     }
 }
 

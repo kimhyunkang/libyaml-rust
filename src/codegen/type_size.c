@@ -6,17 +6,17 @@ int main()
     printf("use std::libc::c_int;\n\n");
 
     printf("#[allow(non_camel_case_types)]\n");
-    printf("pub struct yaml_parser_t { opaque: [c_int, ..%lu] }\n", sizeof(yaml_parser_t) / sizeof(int));
-    printf("pub fn new_yaml_parser_t() -> yaml_parser_t {\n");
-    printf("    yaml_parser_t { opaque: [0, ..%lu] }\n", sizeof(yaml_parser_t) / sizeof(int));
+    printf("pub type yaml_parser_mem_t = [c_int, ..%lu];\n", sizeof(yaml_parser_t) / sizeof(int));
+    printf("pub fn new_yaml_parser_mem_t() -> yaml_parser_mem_t {\n");
+    printf("    [0, ..%lu]\n", sizeof(yaml_parser_t) / sizeof(int));
     printf("}\n\n");
 
     yaml_event_t dummy_event;
 
     printf("#[allow(non_camel_case_types)]\n");
-    printf("pub struct yaml_event_data_t { opaque: [c_int, ..%lu] }\n", sizeof(dummy_event.data) / sizeof(int));
+    printf("pub type yaml_event_data_t = [c_int, ..%lu];\n", sizeof(dummy_event.data) / sizeof(int));
     printf("pub fn new_yaml_event_data_t() -> yaml_event_data_t {\n");
-    printf("    yaml_event_data_t { opaque: [0, ..%lu] }\n", sizeof(dummy_event.data) / sizeof(int));
+    printf("    [0, ..%lu]\n", sizeof(dummy_event.data) / sizeof(int));
     printf("}\n\n");
 
     printf("#[allow(non_camel_case_types)]\n");
