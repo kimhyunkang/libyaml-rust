@@ -36,10 +36,27 @@ int main()
     printf("    [0, ..%lu]\n", sizeof(dummy_parser.input) / sizeof(int));
     printf("}\n\n");
 
+    yaml_node_t dummy_node;
+
+    printf("#[allow(non_camel_case_types)]\n");
+    // FIXME: might not work on big endian machines
+    printf("pub type yaml_node_type_t = u%lu;\n\n", ((size_t)(&dummy_node.tag) - (size_t)(&dummy_node)) * 8);
+
+    printf("#[allow(non_camel_case_types)]\n");
+    // FIXME: might not work on big endian machines
+    printf("pub type yaml_node_data_t = [c_int, ..%lu];\n\n", sizeof(dummy_node.data) / sizeof(int));
+    printf("pub fn new_yaml_node_data_t() -> yaml_node_data_t {\n");
+    printf("    [0, ..%lu]\n", sizeof(dummy_node.data) / sizeof(int));
+    printf("}\n\n");
+
     printf("#[cfg(test)]\n");
     printf("pub static yaml_parser_t_size:uint = %lu;\n", sizeof(yaml_parser_t));
     printf("#[cfg(test)]\n");
     printf("pub static yaml_event_t_size:uint = %lu;\n", sizeof(yaml_event_t));
+    printf("#[cfg(test)]\n");
+    printf("pub static yaml_document_t_size:uint = %lu;\n", sizeof(yaml_document_t));
+    printf("#[cfg(test)]\n");
+    printf("pub static yaml_node_t_size:uint = %lu;\n", sizeof(yaml_node_t));
 
     return 0;
 }

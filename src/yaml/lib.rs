@@ -12,6 +12,7 @@ use std::libc;
 pub mod ffi;
 pub mod event;
 pub mod parser;
+pub mod document;
 
 mod type_size;
 
@@ -63,5 +64,15 @@ mod test {
     #[test]
     fn test_parser_size() {
         assert_eq!(super::type_size::yaml_parser_t_size, mem::size_of::<super::ffi::yaml_parser_t>())
+    }
+
+    #[test]
+    fn test_document_size() {
+        assert_eq!(super::type_size::yaml_document_t_size, mem::size_of::<super::ffi::yaml_document_t>())
+    }
+
+    #[test]
+    fn test_node_size() {
+        assert_eq!(super::type_size::yaml_node_t_size, mem::size_of::<super::ffi::yaml_node_t>())
     }
 }

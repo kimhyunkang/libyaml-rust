@@ -1,5 +1,6 @@
 use ffi;
 use event::{YamlEvent, InternalEvent};
+use document::{YamlDocument};
 use std::cast;
 use std::libc;
 use std::io;
@@ -28,7 +29,7 @@ pub struct YamlMark {
 }
 
 impl YamlMark {
-    fn conv(mark: &ffi::yaml_mark_t) -> YamlMark {
+    pub fn conv(mark: &ffi::yaml_mark_t) -> YamlMark {
         YamlMark {
             index: mark.index as uint,
             line: mark.line as uint,
@@ -63,6 +64,21 @@ impl<P:YamlParser> YamlEventStream<P> {
     }
 }
 
+pub struct YamlDocumentStream<P> {
+    parser: ~P,
+}
+
+impl<P:YamlParser> YamlDocumentStream<P> {
+    pub fn next_document(&mut self) -> Result<~YamlDocument, YamlError> {
+        unsafe {
+            match self.parser.load_document() {
+                Some(doc) => Ok(doc),
+                None => Err(self.parser.base_parser_ref().get_error())
+            }
+        }
+    }
+}
+
 pub trait YamlParser {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser;
 
@@ -78,8 +94,26 @@ pub trait YamlParser {
         }
     }
 
+    unsafe fn load_document(&mut self) -> Option<~YamlDocument> {
+        let mut document = ~YamlDocument {
+            document_mem: ffi::yaml_document_t::new()
+        };
+
+        if !self.base_parser_ref().load(&mut document.document_mem) {
+            None
+        } else {
+            Some(document)
+        }
+    }
+
     fn parse(~self) -> YamlEventStream<Self> {
         YamlEventStream {
+            parser: self,
+        }
+    }
+
+    fn load(~self) -> YamlDocumentStream<Self> {
+        YamlDocumentStream {
             parser: self,
         }
     }
@@ -130,6 +164,10 @@ impl YamlBaseParser {
 
     unsafe fn parse(&mut self, event: &mut ffi::yaml_event_t) -> bool {
         ffi::yaml_parser_parse(&mut self.parser_mem, event) != 0
+    }
+
+    unsafe fn load(&mut self ,document: &mut ffi::yaml_document_t) -> bool {
+        ffi::yaml_parser_load(&mut self.parser_mem, document) != 0
     }
 
     unsafe fn get_error(&self) -> YamlError {
@@ -223,6 +261,7 @@ impl YamlIoParser {
 #[cfg(test)]
 mod test {
     use event::*;
+    use document;
     use parser;
     use parser::YamlParser;
     use ffi;
@@ -351,6 +390,58 @@ mod test {
         match stream_err {
             Ok(evt) => fail!("unexpected result: {:?}", evt),
             Err(err) => assert_eq!(parser::YamlScannerError, err.kind)
+        }
+    }
+
+    #[test]
+    fn test_document() {
+        let data = "[1, 2, 3]";
+        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let mut stream = parser.load();
+
+        match stream.next_document() {
+            Err(e) => fail!("unexpected result: {:?}", e),
+            Ok(doc) => match doc.root() {
+                document::YamlSequenceNode(seq) => {
+                    let values = seq.values().map(|node| {
+                        match node {
+                            document::YamlScalarNode(scalar) => scalar.value,
+                            _ => fail!("unexpected scalar: {:?}", node)
+                        }
+                    }).collect();
+                    assert_eq!(~[~"1", ~"2", ~"3"], values)
+                },
+                _ => fail!("unexpected result: {:?}", doc)
+            }
+        }
+    }
+
+    #[test]
+    fn test_mapping_document() {
+        let data = "{\"a\": 1, \"b\": 2}";
+        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let mut stream = parser.load();
+
+        match stream.next_document() {
+            Err(e) => fail!("unexpected result: {:?}", e),
+            Ok(doc) => match doc.root() {
+                document::YamlMappingNode(seq) => {
+                    let values = seq.pairs().map(|(key, value)| {
+                        (
+                            match key {
+                                document::YamlScalarNode(scalar) => scalar.value,
+                                _ => fail!("unexpected scalar: {:?}", key)
+                            },
+                            match value {
+                                document::YamlScalarNode(scalar) => scalar.value,
+                                _ => fail!("unexpected scalar: {:?}", value)
+                            }
+                        )
+                    }).collect();
+                    assert_eq!(~[(~"a", ~"1"), (~"b", ~"2")], values)
+                },
+                _ => fail!("unexpected result: {:?}", doc)
+            }
         }
     }
 }

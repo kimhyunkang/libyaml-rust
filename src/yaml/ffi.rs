@@ -1,4 +1,4 @@
-pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t, yaml_error_type_t, yaml_parser_input_t, new_yaml_parser_input_t};
+pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t, yaml_error_type_t, yaml_parser_input_t, new_yaml_parser_input_t, yaml_node_type_t, yaml_node_data_t, new_yaml_node_data_t};
 use std::libc::{c_char, c_uchar, c_int, c_void, size_t};
 use std::ptr;
 use parser::YamlIoParser;
@@ -175,6 +175,56 @@ impl yaml_stack_t {
     }
 }
 
+/** An empty node. */
+pub static YAML_NO_NODE:yaml_node_type_t = 0;
+
+/** A scalar node. */
+pub static YAML_SCALAR_NODE:yaml_node_type_t = 1;
+/** A sequence node. */
+pub static YAML_SEQUENCE_NODE:yaml_node_type_t = 2;
+/** A mapping node. */
+pub static YAML_MAPPING_NODE:yaml_node_type_t = 3;
+
+#[allow(non_camel_case_types)]
+pub struct yaml_node_t {
+    node_type: yaml_node_type_t,
+    tag: *yaml_char_t,
+    data: yaml_node_data_t,
+    start_mark: yaml_mark_t,
+    end_mark: yaml_mark_t,
+}
+
+impl yaml_node_t {
+    pub fn new() -> yaml_node_t {
+        yaml_node_t {
+            node_type: YAML_NO_NODE,
+            tag: ptr::null(),
+            data: new_yaml_node_data_t(),
+            start_mark: yaml_mark_t::new(),
+            end_mark: yaml_mark_t::new()
+        }
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_scalar_node_t {
+    value: *yaml_char_t,
+    length: size_t,
+    style: YamlScalarStyle
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_sequence_node_t {
+    items: yaml_stack_t,
+    style: YamlSequenceStyle
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_node_pair_t {
+    key: c_int,
+    value: c_int
+}
+
 #[allow(non_camel_case_types)]
 pub struct yaml_document_t {
     nodes: yaml_stack_t,
@@ -187,6 +237,20 @@ pub struct yaml_document_t {
 
     start_mark: yaml_mark_t,
     end_mark: yaml_mark_t,
+}
+
+impl yaml_document_t {
+    pub fn new() -> yaml_document_t {
+        yaml_document_t {
+            nodes: yaml_stack_t::new(),
+            version_directive: ptr::null(),
+            tag_directives: yaml_tag_directive_list_t { start: ptr::null(), end: ptr::null() },
+            start_implicit: 0,
+            end_implicit: 0,
+            start_mark: yaml_mark_t::new(),
+            end_mark: yaml_mark_t::new()
+        }
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -373,9 +437,13 @@ extern {
     pub fn yaml_get_version_string() -> *c_char;
     pub fn yaml_get_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int) -> c_void;
     pub fn yaml_event_delete(event: *mut yaml_event_t) -> c_void;
+    pub fn yaml_document_get_node(document: *yaml_document_t, index: c_int) -> *yaml_node_t;
+    pub fn yaml_document_get_root_node(document: *yaml_document_t) -> *yaml_node_t;
+    pub fn yaml_document_delete(document: *mut yaml_document_t) -> c_void;
     pub fn yaml_parser_initialize(parser: *mut yaml_parser_t) -> c_int;
     pub fn yaml_parser_delete(parser: *mut yaml_parser_t) -> c_void;
     pub fn yaml_parser_set_input_string(parser: *mut yaml_parser_t, input: *yaml_char_t, size: size_t) -> c_void;
     pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: yaml_read_handler_t, data: *c_void) -> c_void;
     pub fn yaml_parser_parse(parser: *mut yaml_parser_t, event: *mut yaml_event_t) -> c_int;
+    pub fn yaml_parser_load(parser: *mut yaml_parser_t, document: *mut yaml_document_t) -> c_int;
 }
