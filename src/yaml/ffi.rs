@@ -1,5 +1,5 @@
 pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t, yaml_error_type_t, yaml_parser_input_t, new_yaml_parser_input_t, yaml_node_type_t, yaml_node_data_t, new_yaml_node_data_t};
-use std::libc::{c_char, c_uchar, c_int, c_void, size_t};
+use libc::{c_char, c_uchar, c_int, c_void, size_t};
 use std::ptr;
 use parser::YamlIoParser;
 
@@ -109,9 +109,9 @@ pub enum YamlEncoding {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_mark_t {
-    index: size_t,
-    line: size_t,
-    column: size_t
+    pub index: size_t,
+    pub line: size_t,
+    pub column: size_t
 }
 
 impl yaml_mark_t {
@@ -122,10 +122,10 @@ impl yaml_mark_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_buffer_t {
-    start: *yaml_char_t,
-    end: *yaml_char_t,
-    pointer: *yaml_char_t,
-    last: *yaml_char_t
+    pub start: *yaml_char_t,
+    pub end: *yaml_char_t,
+    pub pointer: *yaml_char_t,
+    pub last: *yaml_char_t
 }
 
 impl yaml_buffer_t {
@@ -141,10 +141,10 @@ impl yaml_buffer_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_queue_t {
-    start: *c_void,
-    end: *c_void,
-    head: *c_void,
-    tail: *c_void
+    pub start: *c_void,
+    pub end: *c_void,
+    pub head: *c_void,
+    pub tail: *c_void
 }
 
 impl yaml_queue_t {
@@ -160,9 +160,9 @@ impl yaml_queue_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_stack_t {
-    start: *c_void,
-    end: *c_void,
-    top: *c_void
+    pub start: *c_void,
+    pub end: *c_void,
+    pub top: *c_void
 }
 
 impl yaml_stack_t {
@@ -187,11 +187,11 @@ pub static YAML_MAPPING_NODE:yaml_node_type_t = 3;
 
 #[allow(non_camel_case_types)]
 pub struct yaml_node_t {
-    node_type: yaml_node_type_t,
-    tag: *yaml_char_t,
-    data: yaml_node_data_t,
-    start_mark: yaml_mark_t,
-    end_mark: yaml_mark_t,
+    pub node_type: yaml_node_type_t,
+    pub tag: *yaml_char_t,
+    pub data: yaml_node_data_t,
+    pub start_mark: yaml_mark_t,
+    pub end_mark: yaml_mark_t,
 }
 
 impl yaml_node_t {
@@ -208,35 +208,35 @@ impl yaml_node_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_node_t {
-    value: *yaml_char_t,
-    length: size_t,
-    style: YamlScalarStyle
+    pub value: *yaml_char_t,
+    pub length: size_t,
+    pub style: YamlScalarStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_node_t {
-    items: yaml_stack_t,
-    style: YamlSequenceStyle
+    pub items: yaml_stack_t,
+    pub style: YamlSequenceStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_node_pair_t {
-    key: c_int,
-    value: c_int
+    pub key: c_int,
+    pub value: c_int
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_document_t {
-    nodes: yaml_stack_t,
+    pub nodes: yaml_stack_t,
 
-    version_directive: *yaml_version_directive_t,
-    tag_directives: yaml_tag_directive_list_t,
+    pub version_directive: *yaml_version_directive_t,
+    pub tag_directives: yaml_tag_directive_list_t,
 
-    start_implicit: c_int,
-    end_implicit: c_int,
+    pub start_implicit: c_int,
+    pub end_implicit: c_int,
 
-    start_mark: yaml_mark_t,
-    end_mark: yaml_mark_t,
+    pub start_mark: yaml_mark_t,
+    pub end_mark: yaml_mark_t,
 }
 
 impl yaml_document_t {
@@ -255,45 +255,45 @@ impl yaml_document_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_parser_t {
-    error: yaml_error_type_t,
-    problem: *c_char,
-    problem_offset: size_t,
-    problem_value: c_int,
-    problem_mark: yaml_mark_t,
-    context: *c_char,
-    context_mark: yaml_mark_t,
+    pub error: yaml_error_type_t,
+    pub problem: *c_char,
+    pub problem_offset: size_t,
+    pub problem_value: c_int,
+    pub problem_mark: yaml_mark_t,
+    pub context: *c_char,
+    pub context_mark: yaml_mark_t,
 
-    read_handler: yaml_read_handler_t,
-    read_handler_data: *c_void,
+    pub read_handler: yaml_read_handler_t,
+    pub read_handler_data: *c_void,
 
-    input: yaml_parser_input_t,
-    eof: c_int,
-    buffer: yaml_buffer_t,
-    unread: size_t,
-    raw_buffer: yaml_buffer_t,
-    encoding: YamlEncoding,
-    offset: size_t,
-    mark: yaml_mark_t,
+    pub input: yaml_parser_input_t,
+    pub eof: c_int,
+    pub buffer: yaml_buffer_t,
+    pub unread: size_t,
+    pub raw_buffer: yaml_buffer_t,
+    pub encoding: YamlEncoding,
+    pub offset: size_t,
+    pub mark: yaml_mark_t,
 
-    stream_start_produced: c_int,
-    stream_end_produced: c_int,
-    flow_level: c_int,
-    tokens: yaml_queue_t,
-    tokens_parsed: size_t,
-    token_available: c_int,
+    pub stream_start_produced: c_int,
+    pub stream_end_produced: c_int,
+    pub flow_level: c_int,
+    pub tokens: yaml_queue_t,
+    pub tokens_parsed: size_t,
+    pub token_available: c_int,
 
-    indents: yaml_stack_t,
-    indent: c_int,
-    simple_key_allowed: c_int,
-    simple_keys: yaml_stack_t,
+    pub indents: yaml_stack_t,
+    pub indent: c_int,
+    pub simple_key_allowed: c_int,
+    pub simple_keys: yaml_stack_t,
 
-    states: yaml_stack_t,
-    parser_state: c_int,
-    marks: yaml_stack_t,
-    tag_directives: yaml_stack_t,
-    aliases: yaml_stack_t,
+    pub states: yaml_stack_t,
+    pub parser_state: c_int,
+    pub marks: yaml_stack_t,
+    pub tag_directives: yaml_stack_t,
+    pub aliases: yaml_stack_t,
 
-    document: *yaml_document_t,
+    pub document: *yaml_document_t,
 }
 
 impl yaml_parser_t {
@@ -344,65 +344,65 @@ impl yaml_parser_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_event_t {
-    event_type: yaml_event_type_t,
-    data: yaml_event_data_t,
-    start_mark: yaml_mark_t,
-    end_mark: yaml_mark_t
+    pub event_type: yaml_event_type_t,
+    pub data: yaml_event_data_t,
+    pub start_mark: yaml_mark_t,
+    pub end_mark: yaml_mark_t
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_stream_start_event_t {
-    encoding: YamlEncoding
+    pub encoding: YamlEncoding
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_list_t {
-    start: *yaml_tag_directive_t,
-    end: *yaml_tag_directive_t,
+    pub start: *yaml_tag_directive_t,
+    pub end: *yaml_tag_directive_t,
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_document_start_event_t {
-    version_directive: *yaml_version_directive_t,
-    tag_directives: yaml_tag_directive_list_t,
-    implicit: c_int
+    pub version_directive: *yaml_version_directive_t,
+    pub tag_directives: yaml_tag_directive_list_t,
+    pub implicit: c_int
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_document_end_event_t {
-    implicit: c_int
+    pub implicit: c_int
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_alias_event_t {
-    anchor: *yaml_char_t
+    pub anchor: *yaml_char_t
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_start_event_t {
-    anchor: *yaml_char_t,
-    tag: *yaml_char_t,
-    implicit: c_int,
-    style: YamlSequenceStyle
+    pub anchor: *yaml_char_t,
+    pub tag: *yaml_char_t,
+    pub implicit: c_int,
+    pub style: YamlSequenceStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_mapping_start_event_t {
-    anchor: *yaml_char_t,
-    tag: *yaml_char_t,
-    implicit: c_int,
-    style: YamlSequenceStyle
+    pub anchor: *yaml_char_t,
+    pub tag: *yaml_char_t,
+    pub implicit: c_int,
+    pub style: YamlSequenceStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_event_t {
-    anchor: *yaml_char_t,
-    tag: *yaml_char_t,
-    value: *yaml_char_t,
-    length: size_t,
-    plain_implicit: c_int,
-    quoted_implicit: c_int,
-    style: YamlScalarStyle
+    pub anchor: *yaml_char_t,
+    pub tag: *yaml_char_t,
+    pub value: *yaml_char_t,
+    pub length: size_t,
+    pub plain_implicit: c_int,
+    pub quoted_implicit: c_int,
+    pub style: YamlScalarStyle
 }
 
 impl yaml_event_t {
@@ -422,14 +422,14 @@ impl yaml_event_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_version_directive_t {
-    major: c_int,
-    minor: c_int
+    pub major: c_int,
+    pub minor: c_int
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_t {
-    handle: *c_char,
-    prefix: *c_char
+    pub handle: *c_char,
+    pub prefix: *c_char
 }
 
 #[link(name = "yaml")]

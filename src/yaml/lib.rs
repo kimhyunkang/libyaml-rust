@@ -7,7 +7,7 @@
 
 #![feature(globs)]
 
-use std::libc;
+extern crate libc;
 
 pub mod ffi;
 pub mod event;
@@ -21,7 +21,7 @@ pub fn version_string() -> ~str {
         std::c_str::CString::new(ffi::yaml_get_version_string(), false)
     };
 
-    c_vsn.as_str().unwrap().into_owned()
+    c_vsn.as_str().unwrap().to_owned()
 }
 
 pub fn version() -> (int, int, int) {
@@ -47,7 +47,7 @@ mod test {
     #[test]
     fn test_version_string() {
         let vsn = super::version_string();
-        assert!(~"0.1.4" <= vsn && vsn < ~"0.2")
+        assert!("0.1.4".to_owned() <= vsn && vsn < "0.2".to_owned())
     }
 
     #[test]
