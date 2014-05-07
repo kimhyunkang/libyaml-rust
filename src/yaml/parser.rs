@@ -2,6 +2,8 @@ use ffi;
 pub use ffi::{YamlEncoding, YamlScalarStyle, YamlSequenceStyle};
 use std::cast;
 use std::ptr;
+use std::libc;
+use std::io;
 use std::c_str::CString;
 use std::c_vec::CVec;
 
@@ -77,12 +79,12 @@ pub enum YamlEvent {
     YamlMappingEndEvent,
 }
 
-pub struct YamlEventStream<'r> {
-    parser: ~YamlParser<'r>,
+pub struct YamlEventStream<P> {
+    parser: ~P,
     end_stream: bool
 }
 
-impl<'r> Iterator<YamlEvent> for YamlEventStream<'r> {
+impl<P:YamlParser> Iterator<YamlEvent> for YamlEventStream<P> {
     fn next(&mut self) -> Option<YamlEvent> {
         if self.end_stream {
             None
@@ -104,8 +106,8 @@ impl<'r> Iterator<YamlEvent> for YamlEventStream<'r> {
     }
 }
 
-pub trait YamlParser<'r> {
-    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut ffi::yaml_parser_t;
+pub trait YamlParser {
+    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser;
 
     unsafe fn parse_event(&mut self) -> Option<YamlEvent> {
         let mut event = InternalEvent {
@@ -195,7 +197,7 @@ pub trait YamlParser<'r> {
         }
     }
 
-    fn parse(~self) -> YamlEventStream<'r> {
+    fn parse(~self) -> YamlEventStream<Self> {
         YamlEventStream {
             parser: self,
             end_stream: false
@@ -203,12 +205,68 @@ pub trait YamlParser<'r> {
     }
 }
 
-pub struct YamlByteParser<'r> {
-    base_parser: ffi::yaml_parser_t,
+extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc::size_t, size_read: *mut libc::size_t) -> libc::c_int {
+    unsafe {
+        let mut buf = CVec::new(buffer, size as uint);
+        let parser = &mut *data;
+        match parser.reader.read(buf.as_mut_slice()) {
+            Ok(size) => {
+                *size_read = size as libc::size_t;
+                return 1;
+            },
+            Err(err) => {
+                match err.kind {
+                    io::EndOfFile => {
+                        *size_read = 0;
+                        return 1;
+                    },
+                    _ => {
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
 }
 
-impl<'r> YamlParser<'r> for YamlByteParser<'r> {
-    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut ffi::yaml_parser_t {
+pub struct YamlBaseParser {
+    parser_mem: ffi::yaml_parser_t,
+}
+
+impl YamlBaseParser {
+    fn new() -> YamlBaseParser {
+        YamlBaseParser {
+            parser_mem: ffi::yaml_parser_t::new()
+        }
+    }
+
+    unsafe fn initialize(&mut self) -> bool {
+        ffi::yaml_parser_initialize(&mut self.parser_mem) != 0
+    }
+
+    unsafe fn set_input_string(&mut self, input: *u8, size: uint) {
+        ffi::yaml_parser_set_input_string(&mut self.parser_mem, input, size as libc::size_t);
+    }
+
+    unsafe fn parse(&mut self, event: &mut ffi::yaml_event_t) -> bool {
+        ffi::yaml_parser_parse(&mut self.parser_mem, event) != 0
+    }
+}
+
+impl Drop for YamlBaseParser {
+    fn drop(&mut self) {
+        unsafe {
+            ffi::yaml_parser_delete(&mut self.parser_mem);
+        }
+    }
+}
+
+pub struct YamlByteParser<'r> {
+    base_parser: YamlBaseParser
+}
+
+impl<'r> YamlParser for YamlByteParser<'r> {
+    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
         &mut self.base_parser
     }
 }
@@ -216,7 +274,7 @@ impl<'r> YamlParser<'r> for YamlByteParser<'r> {
 impl<'r> YamlByteParser<'r> {
     pub fn init(bytes: &'r [u8]) -> ~YamlByteParser<'r> {
         let mut parser = ~YamlByteParser {
-            base_parser: ffi::yaml_parser_t::new(),
+            base_parser: YamlBaseParser::new()
         };
 
         unsafe {
@@ -230,18 +288,59 @@ impl<'r> YamlByteParser<'r> {
     }
 }
 
-impl<'r> Drop for YamlByteParser<'r> {
-    fn drop(&mut self) {
-        unsafe {
-            self.base_parser.delete()
-        }
+pub struct YamlIoParser {
+    base_parser: YamlBaseParser,
+    reader: ~Reader,
+}
+
+impl<'r> YamlParser for YamlIoParser {
+    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
+        &mut self.base_parser
     }
 }
+
+impl YamlIoParser {
+    pub fn init(reader: ~Reader) -> ~YamlIoParser {
+        let mut parser = ~YamlIoParser {
+            base_parser: YamlBaseParser::new(),
+            reader: reader
+        };
+
+        unsafe {
+            if !parser.base_parser.initialize() {
+                fail!("failed to initialize yaml_parser_t");
+            }
+
+            ffi::yaml_parser_set_input(&mut parser.base_parser.parser_mem, handle_reader_cb, cast::transmute(&mut *parser));
+        }
+
+        parser
+    }
+} 
 
 #[test]
 fn test_byte_parser() {
     let data = "[1, 2, 3]";
     let parser = YamlByteParser::init(data.as_bytes());
+    let expected = ~[
+        YamlStreamStartEvent(ffi::YamlUtf8Encoding),
+        YamlDocumentStartEvent(None, ~[], true),
+        YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
+        YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: ~[49u8], plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+        YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: ~[50u8], plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+        YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: ~[51u8], plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+        YamlSequenceEndEvent,
+        YamlDocumentEndEvent(true),
+        YamlStreamEndEvent
+    ];
+    assert_eq!(expected, parser.parse().collect());
+}
+
+#[test]
+fn test_io_parser() {
+    let data = "[1, 2, 3]";
+    let reader = ~io::BufReader::new(data.as_bytes());
+    let parser = YamlIoParser::init(reader);
     let expected = ~[
         YamlStreamStartEvent(ffi::YamlUtf8Encoding),
         YamlDocumentStartEvent(None, ~[], true),

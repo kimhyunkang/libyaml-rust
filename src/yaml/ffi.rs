@@ -1,11 +1,12 @@
 pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t};
 use std::libc::{c_char, c_uchar, c_int, c_void, size_t};
+use parser::YamlIoParser;
 
 #[allow(non_camel_case_types)]
 pub type yaml_char_t = c_uchar;
 
 #[allow(non_camel_case_types)]
-pub type yaml_read_handler_t = extern fn(data: *c_void, buffer: *c_uchar, size: size_t, size_read: *size_t) -> c_int;
+pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int;
 
 /** An empty event. */
 pub static YAML_NO_EVENT:yaml_event_type_t = 0;
@@ -103,22 +104,6 @@ impl yaml_parser_t {
         yaml_parser_t {
             opaque: new_yaml_parser_mem_t()
         }
-    }
-
-    pub unsafe fn initialize(&mut self) -> bool {
-        yaml_parser_initialize(self) != 0
-    }
-
-    pub unsafe fn delete(&mut self) {
-        yaml_parser_delete(self);
-    }
-
-    pub unsafe fn set_input_string(&mut self, input: *u8, size: uint) {
-        yaml_parser_set_input_string(self, input, size as size_t);
-    }
-
-    pub unsafe fn parse(&mut self, event: &mut yaml_event_t) -> bool {
-        yaml_parser_parse(self, event) != 0
     }
 }
 
@@ -220,6 +205,6 @@ extern {
     pub fn yaml_parser_initialize(parser: *mut yaml_parser_t) -> c_int;
     pub fn yaml_parser_delete(parser: *mut yaml_parser_t) -> c_void;
     pub fn yaml_parser_set_input_string(parser: *mut yaml_parser_t, input: *yaml_char_t, size: size_t) -> c_void;
-    pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: *yaml_read_handler_t, data: *c_void) -> c_void;
+    pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: yaml_read_handler_t, data: *c_void) -> c_void;
     pub fn yaml_parser_parse(parser: *mut yaml_parser_t, event: *mut yaml_event_t) -> c_int;
 }
