@@ -1,5 +1,5 @@
 use ffi;
-pub use ffi::{YamlEncoding, YamlScalarStyle, YamlSequenceStyle};
+pub use ffi::{YamlEncoding, YamlUtf8Encoding, YamlUtf16BeEncoding, YamlUtf16LeEncoding, YamlScalarStyle, YamlSequenceStyle};
 use std::cast;
 use std::ptr;
 use std::libc;
@@ -65,6 +65,48 @@ pub struct YamlScalarParam {
 
 #[deriving(Eq)]
 #[deriving(Show)]
+pub enum YamlErrorType {
+    YamlNoError,
+    YamlMemoryError,
+    YamlReaderError,
+    YamlScannerError,
+    YamlParserError,
+    YamlComposerError,
+    YamlWriterError,
+    YamlEmitterError,
+}
+
+#[deriving(Eq)]
+#[deriving(Show)]
+pub struct YamlMark {
+    index: uint,
+    line: uint,
+    column: uint
+}
+
+impl YamlMark {
+    fn conv(mark: &ffi::yaml_mark_t) -> YamlMark {
+        YamlMark {
+            index: mark.index as uint,
+            line: mark.line as uint,
+            column: mark.column as uint
+        }
+    }
+}
+
+#[deriving(Eq)]
+#[deriving(Show)]
+pub struct YamlError {
+    kind: YamlErrorType,
+    problem: Option<~str>,
+    byte_offset: uint,
+    problem_mark: YamlMark,
+    context: Option<~str>,
+    context_mark: YamlMark,
+}
+
+#[deriving(Eq)]
+#[deriving(Show)]
 pub enum YamlEvent {
     YamlNoEvent,
     YamlStreamStartEvent(YamlEncoding),
@@ -81,26 +123,14 @@ pub enum YamlEvent {
 
 pub struct YamlEventStream<P> {
     parser: ~P,
-    end_stream: bool
 }
 
-impl<P:YamlParser> Iterator<YamlEvent> for YamlEventStream<P> {
-    fn next(&mut self) -> Option<YamlEvent> {
-        if self.end_stream {
-            None
-        } else {
-            unsafe {
-                let evt = self.parser.parse_event();
-                match evt {
-                    Some(YamlStreamEndEvent) => {
-                        self.end_stream = true;
-                    },
-                    None => {
-                        self.end_stream = true;
-                    }
-                    _ => ()
-                }
-                evt
+impl<P:YamlParser> YamlEventStream<P> {
+    fn next_event(&mut self) -> Result<YamlEvent, YamlError> {
+        unsafe {
+            match self.parser.parse_event() {
+                Some(evt) => Ok(evt),
+                None => Err(self.parser.base_parser_ref().get_error())
             }
         }
     }
@@ -200,7 +230,6 @@ pub trait YamlParser {
     fn parse(~self) -> YamlEventStream<Self> {
         YamlEventStream {
             parser: self,
-            end_stream: false
         }
     }
 }
@@ -250,6 +279,28 @@ impl YamlBaseParser {
 
     unsafe fn parse(&mut self, event: &mut ffi::yaml_event_t) -> bool {
         ffi::yaml_parser_parse(&mut self.parser_mem, event) != 0
+    }
+
+    unsafe fn get_error(&self) -> YamlError {
+        let kind = match self.parser_mem.error {
+            ffi::YAML_NO_ERROR => YamlNoError,
+            ffi::YAML_READER_ERROR => YamlReaderError,
+            ffi::YAML_SCANNER_ERROR => YamlScannerError,
+            ffi::YAML_PARSER_ERROR => YamlParserError,
+            ffi::YAML_COMPOSER_ERROR => YamlComposerError,
+            ffi::YAML_WRITER_ERROR => YamlWriterError,
+            ffi::YAML_EMITTER_ERROR => YamlEmitterError,
+            _ => fail!("unknown error type")
+        };
+
+        YamlError {
+            kind: kind,
+            problem: CString::new(self.parser_mem.problem, false).as_str().map(|s| s.into_owned()),
+            byte_offset: self.parser_mem.problem_offset as uint,
+            problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),
+            context: CString::new(self.parser_mem.problem, false).as_str().map(|s| s.into_owned()),
+            context_mark: YamlMark::conv(&self.parser_mem.context_mark),
+        }
     }
 }
 
@@ -333,7 +384,26 @@ fn test_byte_parser() {
         YamlDocumentEndEvent(true),
         YamlStreamEndEvent
     ];
-    assert_eq!(expected, parser.parse().collect());
+
+    let mut produced = ~[];
+    let mut stream = parser.parse();
+
+    loop {
+        match stream.next_event() {
+            Ok(YamlStreamEndEvent) => {
+                produced.push(YamlStreamEndEvent);
+                break;
+            },
+            Ok(evt) => {
+                produced.push(evt);
+            },
+            Err(err) => {
+                fail!("{:?}", err);
+            }
+        }
+    }
+
+    assert_eq!(expected, produced);
 }
 
 #[test]
@@ -352,7 +422,26 @@ fn test_io_parser() {
         YamlDocumentEndEvent(true),
         YamlStreamEndEvent
     ];
-    assert_eq!(expected, parser.parse().collect());
+
+    let mut produced = ~[];
+    let mut stream = parser.parse();
+
+    loop {
+        match stream.next_event() {
+            Ok(YamlStreamEndEvent) => {
+                produced.push(YamlStreamEndEvent);
+                break;
+            },
+            Ok(evt) => {
+                produced.push(evt);
+            },
+            Err(err) => {
+                fail!("{:?}", err);
+            }
+        }
+    }
+
+    assert_eq!(expected, produced);
 }
 
 #[test]
@@ -371,5 +460,40 @@ fn test_byte_parser_mapping() {
         YamlDocumentEndEvent(true),
         YamlStreamEndEvent
     ];
-    assert_eq!(expected, parser.parse().collect());
+
+    let mut produced = ~[];
+    let mut stream = parser.parse();
+
+    loop {
+        match stream.next_event() {
+            Ok(YamlStreamEndEvent) => {
+                produced.push(YamlStreamEndEvent);
+                break;
+            },
+            Ok(evt) => {
+                produced.push(evt);
+            },
+            Err(err) => {
+                fail!("{:?}", err);
+            }
+        }
+    }
+
+    assert_eq!(expected, produced);
+}
+
+#[test]
+fn test_parser_error() {
+    let data = "\"ab";
+    let parser = YamlByteParser::init(data.as_bytes());
+    let mut stream = parser.parse();
+
+    let stream_start = stream.next_event();
+    assert_eq!(Ok(YamlStreamStartEvent(ffi::YamlUtf8Encoding)), stream_start);
+
+    let stream_err = stream.next_event();
+    match stream_err {
+        Ok(evt) => fail!("unexpected result: {:?}", evt),
+        Err(err) => assert_eq!(YamlScannerError, err.kind)
+    }
 }

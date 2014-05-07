@@ -1,5 +1,6 @@
-pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t};
+pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t, yaml_error_type_t, yaml_parser_input_t, new_yaml_parser_input_t};
 use std::libc::{c_char, c_uchar, c_int, c_void, size_t};
+use std::ptr;
 use parser::YamlIoParser;
 
 #[allow(non_camel_case_types)]
@@ -7,6 +8,11 @@ pub type yaml_char_t = c_uchar;
 
 #[allow(non_camel_case_types)]
 pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int;
+
+#[allow(unused_variable)]
+extern fn yaml_dummy_read_handler(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int {
+    return 0;
+}
 
 /** An empty event. */
 pub static YAML_NO_EVENT:yaml_event_type_t = 0;
@@ -35,6 +41,26 @@ pub static YAML_SEQUENCE_END_EVENT:yaml_event_type_t = 8;
 pub static YAML_MAPPING_START_EVENT:yaml_event_type_t = 9;
 /** A MAPPING-END event. */
 pub static YAML_MAPPING_END_EVENT:yaml_event_type_t = 10;
+
+/** No error is produced. */
+pub static YAML_NO_ERROR:yaml_error_type_t = 0;
+
+/** Cannot allocate or reallocate a block of memory. */
+pub static YAML_MEMORY_ERROR:yaml_error_type_t = 1;
+
+/** Cannot read or decode the input stream. */
+pub static YAML_READER_ERROR:yaml_error_type_t = 2;
+/** Cannot scan the input stream. */
+pub static YAML_SCANNER_ERROR:yaml_error_type_t = 3;
+/** Cannot parse the input stream. */
+pub static YAML_PARSER_ERROR:yaml_error_type_t = 4;
+/** Cannot compose a YAML document. */
+pub static YAML_COMPOSER_ERROR:yaml_error_type_t = 5;
+
+/** Cannot write to the output stream. */
+pub static YAML_WRITER_ERROR:yaml_error_type_t = 6;
+/** Cannot emit a YAML stream. */
+pub static YAML_EMITTER_ERROR:yaml_error_type_t = 7;
 
 #[deriving(Eq)]
 #[deriving(Show)]
@@ -95,14 +121,159 @@ impl yaml_mark_t {
 }
 
 #[allow(non_camel_case_types)]
+pub struct yaml_buffer_t {
+    start: *yaml_char_t,
+    end: *yaml_char_t,
+    pointer: *yaml_char_t,
+    last: *yaml_char_t
+}
+
+impl yaml_buffer_t {
+    fn new() -> yaml_buffer_t {
+        yaml_buffer_t {
+            start: ptr::null(),
+            end: ptr::null(),
+            pointer: ptr::null(),
+            last: ptr::null(),
+        }
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_queue_t {
+    start: *c_void,
+    end: *c_void,
+    head: *c_void,
+    tail: *c_void
+}
+
+impl yaml_queue_t {
+    fn new() -> yaml_queue_t {
+        yaml_queue_t {
+            start: ptr::null(),
+            end: ptr::null(),
+            head: ptr::null(),
+            tail: ptr::null(),
+        }
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_stack_t {
+    start: *c_void,
+    end: *c_void,
+    top: *c_void
+}
+
+impl yaml_stack_t {
+    fn new() -> yaml_stack_t {
+        yaml_stack_t {
+            start: ptr::null(),
+            end: ptr::null(),
+            top: ptr::null()
+        }
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_document_t {
+    nodes: yaml_stack_t,
+
+    version_directive: *yaml_version_directive_t,
+    tag_directives: yaml_tag_directive_list_t,
+
+    start_implicit: c_int,
+    end_implicit: c_int,
+
+    start_mark: yaml_mark_t,
+    end_mark: yaml_mark_t,
+}
+
+#[allow(non_camel_case_types)]
 pub struct yaml_parser_t {
-    opaque: yaml_parser_mem_t
+    error: yaml_error_type_t,
+    problem: *c_char,
+    problem_offset: size_t,
+    problem_value: c_int,
+    problem_mark: yaml_mark_t,
+    context: *c_char,
+    context_mark: yaml_mark_t,
+
+    read_handler: yaml_read_handler_t,
+    read_handler_data: *c_void,
+
+    input: yaml_parser_input_t,
+    eof: c_int,
+    buffer: yaml_buffer_t,
+    unread: size_t,
+    raw_buffer: yaml_buffer_t,
+    encoding: YamlEncoding,
+    offset: size_t,
+    mark: yaml_mark_t,
+
+    stream_start_produced: c_int,
+    stream_end_produced: c_int,
+    flow_level: c_int,
+    tokens: yaml_queue_t,
+    tokens_parsed: size_t,
+    token_available: c_int,
+
+    indents: yaml_stack_t,
+    indent: c_int,
+    simple_key_allowed: c_int,
+    simple_keys: yaml_stack_t,
+
+    states: yaml_stack_t,
+    parser_state: c_int,
+    marks: yaml_stack_t,
+    tag_directives: yaml_stack_t,
+    aliases: yaml_stack_t,
+
+    document: *yaml_document_t,
 }
 
 impl yaml_parser_t {
     pub fn new() -> yaml_parser_t {
         yaml_parser_t {
-            opaque: new_yaml_parser_mem_t()
+            error: 0,
+            problem: ptr::null(),
+            problem_offset: 0,
+            problem_value: 0,
+            problem_mark: yaml_mark_t::new(),
+            context: ptr::null(),
+            context_mark: yaml_mark_t::new(),
+
+            read_handler: yaml_dummy_read_handler,
+            read_handler_data: ptr::null(),
+
+            input: new_yaml_parser_input_t(),
+            eof: 0,
+            buffer: yaml_buffer_t::new(),
+            unread: 0,
+            raw_buffer: yaml_buffer_t::new(),
+            encoding: YamlAnyEncoding,
+            offset: 0,
+            mark: yaml_mark_t::new(),
+
+            stream_start_produced: 0,
+            stream_end_produced: 0,
+            flow_level: 0,
+            tokens: yaml_queue_t::new(),
+            tokens_parsed: 0,
+            token_available: 0,
+
+            indents: yaml_stack_t::new(),
+            indent: 0,
+            simple_key_allowed: 0,
+            simple_keys: yaml_stack_t::new(),
+
+            states: yaml_stack_t::new(),
+            parser_state: 0,
+            marks: yaml_stack_t::new(),
+            tag_directives: yaml_stack_t::new(),
+            aliases: yaml_stack_t::new(),
+
+            document: ptr::null()
         }
     }
 }
