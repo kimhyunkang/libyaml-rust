@@ -53,7 +53,7 @@ pub struct YamlEventStream<P> {
 }
 
 impl<P:YamlParser> YamlEventStream<P> {
-    fn next_event(&mut self) -> Result<YamlEvent, YamlError> {
+    pub fn next_event(&mut self) -> Result<YamlEvent, YamlError> {
         unsafe {
             match self.parser.parse_event() {
                 Some(evt) => Ok(evt),
