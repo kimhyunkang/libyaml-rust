@@ -24,6 +24,12 @@ impl YamlDocument {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        unsafe {
+            ffi::yaml_document_get_root_node(&self.document_mem) == ptr::null()
+        }
+    }
+
     unsafe fn load<'r>(&'r self, node_ptr: *ffi::yaml_node_t) -> YamlNode<'r> {
         if node_ptr == ptr::null() {
             fail!("empty node")
