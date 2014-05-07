@@ -13,6 +13,7 @@ pub mod ffi;
 pub mod event;
 pub mod parser;
 pub mod document;
+pub mod codecs;
 
 mod type_size;
 

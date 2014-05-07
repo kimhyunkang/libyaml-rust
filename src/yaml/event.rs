@@ -2,8 +2,7 @@ use ffi;
 use ffi::{YamlEncoding, YamlSequenceStyle, YamlScalarStyle};
 use std::cast;
 use std::ptr;
-use std::c_str::CString;
-use std::c_vec::CVec;
+use codecs;
 
 #[deriving(Eq)]
 #[deriving(Show)]
@@ -16,15 +15,15 @@ pub struct YamlVersionDirective {
 #[deriving(Show)]
 #[deriving(Clone)]
 pub struct YamlTagDirective {
-    pub handle: ~[u8],
-    pub prefix: ~[u8],
+    pub handle: ~str,
+    pub prefix: ~str,
 }
 
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlSequenceParam {
-    pub anchor: Option<~[u8]>,
-    pub tag: Option<~[u8]>,
+    pub anchor: Option<~str>,
+    pub tag: Option<~str>,
     pub implicit: bool,
     pub style: YamlSequenceStyle
 }
@@ -32,9 +31,9 @@ pub struct YamlSequenceParam {
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlScalarParam {
-    pub anchor: Option<~[u8]>,
-    pub tag: Option<~[u8]>,
-    pub value: ~[u8],
+    pub anchor: Option<~str>,
+    pub tag: Option<~str>,
+    pub value: ~str,
     pub plain_implicit: bool,
     pub quoted_implicit: bool,
     pub style: YamlScalarStyle
@@ -48,22 +47,12 @@ pub enum YamlEvent {
     YamlStreamEndEvent,
     YamlDocumentStartEvent(Option<YamlVersionDirective>, ~[YamlTagDirective], bool),
     YamlDocumentEndEvent(bool),
-    YamlAliasEvent(~[u8]),
+    YamlAliasEvent(~str),
     YamlScalarEvent(YamlScalarParam),
     YamlSequenceStartEvent(YamlSequenceParam),
     YamlSequenceEndEvent,
     YamlMappingStartEvent(YamlSequenceParam),
     YamlMappingEndEvent,
-}
-
-fn c_str_into_owned_bytes(c_str: *ffi::yaml_char_t) -> Option<~[u8]> {
-    unsafe {
-        if c_str == ptr::null() {
-            None
-        } else {
-            Some(CString::new(c_str as *i8, false).as_bytes_no_nul().into_owned())
-        }
-    }
 }
 
 impl YamlEvent {
@@ -87,8 +76,8 @@ impl YamlEvent {
                 let mut tag_ptr = evt_data.tag_directives.start;
                 while tag_ptr != ptr::null() && tag_ptr != evt_data.tag_directives.end {
                     let tag_ref: &ffi::yaml_tag_directive_t = cast::transmute(tag_ptr);
-                    let handle = CString::new(tag_ref.handle, false).as_bytes_no_nul().into_owned();
-                    let prefix = CString::new(tag_ref.prefix, false).as_bytes_no_nul().into_owned();
+                    let handle = codecs::decode_c_str(tag_ref.handle as *ffi::yaml_char_t).unwrap();
+                    let prefix = codecs::decode_c_str(tag_ref.prefix as *ffi::yaml_char_t).unwrap();
                     tag_dirs.push(YamlTagDirective { handle: handle, prefix: prefix });
                     tag_ptr = tag_ptr.offset(1);
                 }
@@ -104,17 +93,17 @@ impl YamlEvent {
             },
             ffi::YAML_ALIAS_EVENT => {
                 let evt_data: &ffi::yaml_alias_event_t = cast::transmute(&event.data);
-                let anchor = CString::new(evt_data.anchor as *i8, false).as_bytes_no_nul().into_owned();
+                let anchor = codecs::decode_c_str(evt_data.anchor).unwrap();
 
                 YamlAliasEvent(anchor)
             },
             ffi::YAML_SCALAR_EVENT => {
                 let evt_data: &ffi::yaml_scalar_event_t = cast::transmute(&event.data);
-                let value = CVec::new(evt_data.value as *mut u8, evt_data.length as uint).as_slice().into_owned();
+                let value = codecs::decode_buf(evt_data.value, evt_data.length).unwrap();
 
                 YamlScalarEvent(YamlScalarParam {
-                    anchor: c_str_into_owned_bytes(evt_data.anchor),
-                    tag: c_str_into_owned_bytes(evt_data.tag),
+                    anchor: codecs::decode_c_str(evt_data.anchor),
+                    tag: codecs::decode_c_str(evt_data.tag),
                     value: value,
                     plain_implicit: evt_data.plain_implicit != 0,
                     quoted_implicit: evt_data.quoted_implicit != 0,
@@ -125,8 +114,8 @@ impl YamlEvent {
                 let evt_data: &ffi::yaml_sequence_start_event_t = cast::transmute(&event.data);
 
                 YamlSequenceStartEvent(YamlSequenceParam {
-                    anchor: c_str_into_owned_bytes(evt_data.anchor),
-                    tag: c_str_into_owned_bytes(evt_data.tag),
+                    anchor: codecs::decode_c_str(evt_data.anchor),
+                    tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })
@@ -136,8 +125,8 @@ impl YamlEvent {
                 let evt_data: &ffi::yaml_mapping_start_event_t = cast::transmute(&event.data);
 
                 YamlMappingStartEvent(YamlSequenceParam {
-                    anchor: c_str_into_owned_bytes(evt_data.anchor),
-                    tag: c_str_into_owned_bytes(evt_data.tag),
+                    anchor: codecs::decode_c_str(evt_data.anchor),
+                    tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })

@@ -1,10 +1,10 @@
 use libc;
+
+use codecs;
 use ffi;
 use parser::YamlMark;
-use std::c_str::CString;
-use std::c_vec::CVec;
+
 use std::ptr;
-use std::str;
 use std::cast;
 
 pub struct YamlDocument {
@@ -30,13 +30,13 @@ impl YamlDocument {
         }
         let node = &*node_ptr;
 
-        let tag = CString::new(node.tag as *i8, false).as_str().map(|s| s.into_owned());
+        let tag = codecs::decode_c_str(node.tag);
         let start_mark = YamlMark::conv(&node.start_mark);
         let end_mark = YamlMark::conv(&node.end_mark);
         match node.node_type {
             ffi::YAML_SCALAR_NODE => {
                 let scalar_data: &ffi::yaml_scalar_node_t = cast::transmute(&node.data);
-                let value = str::from_utf8(CVec::new(scalar_data.value as *mut u8, scalar_data.length as uint).as_slice()).unwrap().into_owned();
+                let value = codecs::decode_buf(scalar_data.value, scalar_data.length).unwrap();
                 YamlScalarNode(YamlScalarData {
                     tag: tag,
                     value: value,
