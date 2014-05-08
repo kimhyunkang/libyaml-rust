@@ -127,6 +127,11 @@ mod test {
     }
 
     #[test]
+    fn test_emitter_size() {
+        assert_eq!(super::type_size::yaml_emitter_t_size, mem::size_of::<super::ffi::yaml_emitter_t>())
+    }
+
+    #[test]
     fn test_document_size() {
         assert_eq!(super::type_size::yaml_document_t_size, mem::size_of::<super::ffi::yaml_document_t>())
     }

@@ -1,4 +1,4 @@
-pub use type_size::{yaml_parser_mem_t, new_yaml_parser_mem_t, yaml_event_data_t, new_yaml_event_data_t, yaml_event_type_t, yaml_error_type_t, yaml_parser_input_t, new_yaml_parser_input_t, yaml_node_type_t, yaml_node_data_t, new_yaml_node_data_t};
+pub use type_size::*;
 use libc::{c_char, c_uchar, c_int, c_void, size_t};
 use std::ptr;
 use parser::YamlIoParser;
@@ -8,6 +8,9 @@ pub type yaml_char_t = c_uchar;
 
 #[allow(non_camel_case_types)]
 pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int;
+
+#[allow(non_camel_case_types)]
+pub type yaml_write_handler_t = extern fn(data: *mut c_void, buffer: *u8, size: size_t) -> c_int;
 
 #[allow(unused_variable)]
 extern fn yaml_dummy_read_handler(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int {
@@ -294,6 +297,99 @@ pub struct yaml_parser_t {
     pub aliases: yaml_stack_t,
 
     pub document: *yaml_document_t,
+}
+
+#[allow(non_camel_case_types)]
+pub enum yaml_break_t {
+    /** Let the parser choose the break type. */
+    YAML_ANY_BREAK,
+    /** Use CR for line breaks (Mac style). */
+    YAML_CR_BREAK,
+    /** Use LN for line breaks (Unix style). */
+    YAML_LN_BREAK,
+    /** Use CR LN for line breaks (DOS style). */
+    YAML_CRLN_BREAK
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_emitter_t {
+    pub error: yaml_error_type_t,
+    pub problem: *c_char,
+
+    pub write_handler: yaml_write_handler_t,
+    pub write_handler_data: *c_void,
+
+    pub output: yaml_emitter_output_t,
+    pub buffer: yaml_buffer_t,
+    pub raw_buffer: yaml_buffer_t,
+    pub encoding: YamlEncoding,
+
+    pub canonical: c_int,
+    pub best_indent: c_int,
+    pub best_width: c_int,
+    pub unicode: c_int,
+    pub line_break: yaml_break_t,
+
+    pub states: yaml_stack_t,
+    pub state: c_int,
+    pub events: yaml_queue_t,
+    pub indents: yaml_stack_t,
+    pub tag_directives: yaml_stack_t,
+
+    pub indent: c_int,
+
+    pub flow_level: c_int,
+
+    pub root_context: c_int,
+    pub sequence_context: c_int,
+    pub mapping_context: c_int,
+    pub simple_key_context: c_int,
+
+    pub line: c_int,
+    pub column: c_int,
+    pub whitespace: c_int,
+    pub indention: c_int,
+    pub open_ended: c_int,
+
+    pub anchor_data: yaml_emitter_anchor_data_t,
+    pub tag_data: yaml_emitter_tag_data_t,
+    pub scalar_data: yaml_emitter_scalar_data_t,
+
+    pub opened: c_int,
+    pub closed: c_int,
+
+    pub anchors: *c_void,
+
+    pub last_anchor_id: c_int,
+
+    pub document: *yaml_document_t
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_emitter_anchor_data_t {
+    pub anchor: *yaml_char_t,
+    pub anchor_length: size_t,
+    pub alias: c_int
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_emitter_tag_data_t {
+    pub handle: *yaml_char_t,
+    pub handle_length: size_t,
+    pub suffix: *yaml_char_t,
+    pub suffix_length: size_t,
+}
+
+#[allow(non_camel_case_types)]
+pub struct yaml_emitter_scalar_data_t {
+    pub value: *yaml_char_t,
+    pub length: size_t,
+    pub multiline: c_int,
+    pub flow_plain_allowed: c_int,
+    pub block_plain_allowed: c_int,
+    pub single_quoted_allowed: c_int,
+    pub block_allowed: c_int,
+    pub style: YamlScalarStyle,
 }
 
 impl yaml_parser_t {

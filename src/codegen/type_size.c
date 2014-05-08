@@ -37,6 +37,15 @@ int main()
     printf("    [0, ..%lu]\n", sizeof(dummy_parser.input) / sizeof(int));
     printf("}\n\n");
 
+    yaml_emitter_t dummy_emitter;
+
+    printf("#[allow(non_camel_case_types)]\n");
+    // FIXME: might not work on big endian machines
+    printf("pub type yaml_emitter_output_t = [c_int, ..%lu];\n\n", sizeof(dummy_emitter.output) / sizeof(int));
+    printf("pub fn new_yaml_emitter_output_t() -> yaml_emitter_output_t {\n");
+    printf("    [0, ..%lu]\n", sizeof(dummy_emitter.output) / sizeof(int));
+    printf("}\n\n");
+
     yaml_node_t dummy_node;
 
     printf("#[allow(non_camel_case_types)]\n");
@@ -52,6 +61,8 @@ int main()
 
     printf("#[cfg(test)]\n");
     printf("pub static yaml_parser_t_size:uint = %lu;\n", sizeof(yaml_parser_t));
+    printf("#[cfg(test)]\n");
+    printf("pub static yaml_emitter_t_size:uint = %lu;\n", sizeof(yaml_emitter_t));
     printf("#[cfg(test)]\n");
     printf("pub static yaml_event_t_size:uint = %lu;\n", sizeof(yaml_event_t));
     printf("#[cfg(test)]\n");
