@@ -43,3 +43,16 @@ let reader = ~BufReader::new(data.as_bytes());
 
 yaml::parse_io(reader); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
 ~~~~
+
+Todo
+----
+
+In the order of what I want to do...
+
+- [ ] Emitter functions
+- [ ] Document iterator
+- [ ] UTF-16 support
+- Complete YAML 1.1 specs
+  - [ ] Tag support
+  - [ ] Timestamp type
+- [ ] Token functions
