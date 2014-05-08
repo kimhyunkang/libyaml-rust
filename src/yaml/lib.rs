@@ -14,6 +14,9 @@ extern crate libc;
 extern crate regex_macros;
 extern crate regex;
 
+use parser::YamlParser;
+use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
+
 pub mod ffi;
 pub mod event;
 pub mod parser;
@@ -47,9 +50,59 @@ pub fn version() -> (int, int, int) {
     (c_major as int, c_minor as int, c_patch as int)
 }
 
+pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
+    let parser = parser::YamlByteParser::init(bytes);
+    let mut doc_stream = parser.load();
+    let mut result = Vec::new();
+    let ctor = YamlStandardConstructor::new();
+    loop {
+        match doc_stream.next_document() {
+            Err(e) => {
+                return Err(e.to_str());
+            },
+            Ok(doc) => {
+                if doc.is_empty() {
+                    return Ok(result)
+                } else {
+                    match ctor.construct(doc.root()) {
+                        Ok(data) => result.push(data),
+                        Err(e) => return Err(e)
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn parse_io(reader: ~Reader) -> Result<Vec<YamlStandardData>, ~str> {
+    let parser = parser::YamlIoParser::init(reader);
+    let mut doc_stream = parser.load();
+    let mut result = Vec::new();
+    let ctor = YamlStandardConstructor::new();
+    loop {
+        match doc_stream.next_document() {
+            Err(e) => {
+                return Err(e.to_str());
+            },
+            Ok(doc) => {
+                if doc.is_empty() {
+                    return Ok(result)
+                } else {
+                    match ctor.construct(doc.root()) {
+                        Ok(data) => result.push(data),
+                        Err(e) => return Err(e)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
 mod test {
-    #[cfg(test)]
     use std::mem;
+    use std::io;
+    use constructor::*;
 
     #[test]
     fn test_version_string() {
@@ -81,5 +134,18 @@ mod test {
     #[test]
     fn test_node_size() {
         assert_eq!(super::type_size::yaml_node_t_size, mem::size_of::<super::ffi::yaml_node_t>())
+    }
+
+    #[test]
+    fn test_parse_bytes() {
+        let data = "[1, 2, 3]";
+        assert_eq!(Ok(vec!(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)]))), super::parse_bytes(data.as_bytes()))
+    }
+
+    #[test]
+    fn test_parse_io() {
+        let data = "[1, 2, 3]";
+        let reader = ~io::BufReader::new(data.as_bytes());
+        assert_eq!(Ok(vec!(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)]))), super::parse_io(reader))
     }
 }

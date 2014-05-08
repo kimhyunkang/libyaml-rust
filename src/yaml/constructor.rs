@@ -35,7 +35,7 @@ pub enum YamlStandardData {
 pub struct YamlStandardConstructor;
 
 impl YamlStandardConstructor {
-    fn new() -> YamlStandardConstructor {
+    pub fn new() -> YamlStandardConstructor {
         YamlStandardConstructor
     }
 }
