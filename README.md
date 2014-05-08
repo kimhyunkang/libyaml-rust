@@ -54,7 +54,7 @@ In the order of what I want to do...
 - [ ] UTF-16 support
 - Complete YAML 1.1 specs
   - [ ] Tag support
-  - [ ] [Timestamp type][http://yaml.org/type/timestamp.html]
-  - [ ] [Int parser][http://yaml.org/type/int.html]
-  - [ ] [Float parser][http://yaml.org/type/float.html]
+  - [ ] [Timestamp type](http://yaml.org/type/timestamp.html)
+  - [ ] [Int parser](http://yaml.org/type/int.html)
+  - [ ] [Float parser](http://yaml.org/type/float.html)
 - [ ] Token functions
