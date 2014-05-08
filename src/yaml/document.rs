@@ -35,48 +35,29 @@ impl YamlDocument {
             fail!("empty node")
         }
         let node = &*node_ptr;
-
-        let tag = codecs::decode_c_str(node.tag);
-        let start_mark = YamlMark::conv(&node.start_mark);
-        let end_mark = YamlMark::conv(&node.end_mark);
         match node.node_type {
             ffi::YAML_SCALAR_NODE => {
                 let scalar_data: &ffi::yaml_scalar_node_t = cast::transmute(&node.data);
-                let value = codecs::decode_buf(scalar_data.value, scalar_data.length).unwrap();
                 YamlScalarNode(YamlScalarData {
-                    tag: tag,
-                    value: value,
-                    style: scalar_data.style,
-                    start_mark: start_mark,
-                    end_mark: end_mark
+                    doc: self,
+                    node: node,
+                    data: scalar_data
                 })
             },
             ffi::YAML_SEQUENCE_NODE => {
                 let sequence_data: &ffi::yaml_sequence_node_t = cast::transmute(&node.data);
-                let start = sequence_data.items.start as *libc::c_int;
-                let top = sequence_data.items.top as *libc::c_int;
                 YamlSequenceNode(YamlSequenceData {
                     doc: self,
-                    tag: tag,
-                    start: start,
-                    top: top,
-                    style: sequence_data.style,
-                    start_mark: start_mark,
-                    end_mark: end_mark
+                    node: node,
+                    data: sequence_data
                 })
             },
             ffi::YAML_MAPPING_NODE => {
                 let mapping_data: &ffi::yaml_sequence_node_t = cast::transmute(&node.data);
-                let start = mapping_data.items.start as *ffi::yaml_node_pair_t;
-                let top = mapping_data.items.top as *ffi::yaml_node_pair_t;
                 YamlMappingNode(YamlMappingData {
                     doc: self,
-                    tag: tag,
-                    start: start,
-                    top: top,
-                    style: mapping_data.style,
-                    start_mark: start_mark,
-                    end_mark: end_mark
+                    node: node,
+                    data: mapping_data
                 })
             },
             _ => fail!("invalid node")
@@ -105,35 +86,73 @@ impl Drop for YamlDocument {
 }
 
 pub enum YamlNode<'r> {
-    YamlScalarNode(YamlScalarData),
+    YamlScalarNode(YamlScalarData<'r>),
     YamlSequenceNode(YamlSequenceData<'r>),
     YamlMappingNode(YamlMappingData<'r>),
 }
 
-pub struct YamlScalarData {
-    pub tag: Option<~str>,
-    pub value: ~str,
-    pub style: ffi::YamlScalarStyle,
-    pub start_mark: YamlMark,
-    pub end_mark: YamlMark
+pub trait YamlNodeData {
+    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t;
+
+    fn tag(&self) -> Option<~str> {
+        unsafe {
+            codecs::decode_c_str(self.internal_node().tag)
+        }
+    }
+
+    fn start_mark(&self) -> YamlMark {
+        unsafe {
+            YamlMark::conv(&self.internal_node().start_mark)
+        }
+    }
+
+    fn end_mark(&self) -> YamlMark {
+        unsafe {
+            YamlMark::conv(&self.internal_node().start_mark)
+        }
+    }
+}
+
+pub struct YamlScalarData<'r> {
+    doc: &'r YamlDocument,
+    node: &'r ffi::yaml_node_t,
+    data: &'r ffi::yaml_scalar_node_t
+}
+
+impl<'r> YamlNodeData for YamlScalarData<'r> {
+    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+        self.node
+    }
+}
+
+impl<'r> YamlScalarData<'r> {
+    pub fn get_value(&self) -> ~str {
+        codecs::decode_buf(self.data.value, self.data.length).unwrap()
+    }
+
+    pub fn style(&self) -> ffi::YamlScalarStyle {
+        self.data.style
+    }
 }
 
 pub struct YamlSequenceData<'r> {
     doc: &'r YamlDocument,
-    pub tag: Option<~str>,
-    start: *libc::c_int,
-    top: *libc::c_int,
-    pub style: ffi::YamlSequenceStyle,
-    pub start_mark: YamlMark,
-    pub end_mark: YamlMark
+    node: &'r ffi::yaml_node_t,
+    data: &'r ffi::yaml_sequence_node_t
+}
+
+impl<'r> YamlNodeData for YamlSequenceData<'r> {
+    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+        self.node
+    }
 }
 
 impl<'r> YamlSequenceData<'r> {
     pub fn values(&self) -> YamlSequenceIter<'r> {
         YamlSequenceIter {
             doc: self.doc,
-            top: self.top,
-            ptr: self.start
+            top: self.data.items.top as *libc::c_int,
+            ptr: self.data.items.start as *libc::c_int
         }
     }
 }
@@ -162,20 +181,22 @@ impl<'r> Iterator<YamlNode<'r>> for YamlSequenceIter<'r> {
 
 pub struct YamlMappingData<'r> {
     doc: &'r YamlDocument,
-    pub tag: Option<~str>,
-    start: *ffi::yaml_node_pair_t,
-    top: *ffi::yaml_node_pair_t,
-    pub style: ffi::YamlSequenceStyle,
-    pub start_mark: YamlMark,
-    pub end_mark: YamlMark
+    node: &'r ffi::yaml_node_t,
+    data: &'r ffi::yaml_sequence_node_t
+}
+
+impl<'r> YamlNodeData for YamlMappingData<'r> {
+    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+        self.node
+    }
 }
 
 impl<'r> YamlMappingData<'r> {
     pub fn pairs(&self) -> YamlMappingIter<'r> {
         YamlMappingIter {
             doc: self.doc,
-            top: self.top,
-            ptr: self.start
+            top: self.data.items.top as *ffi::yaml_node_pair_t,
+            ptr: self.data.items.start as *ffi::yaml_node_pair_t
         }
     }
 }

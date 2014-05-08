@@ -40,6 +40,7 @@ impl YamlStandardConstructor {
     }
 }
 
+
 impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, ~str> {
         let dec_int = regex!(r"^[-+]?[0-9]+$");
@@ -53,36 +54,38 @@ impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
         let true_pattern = regex!(r"^(true|True|TRUE|yes|Yes|YES)$");
         let false_pattern = regex!(r"^(false|False|FALSE|no|No|NO)$");
 
-        match scalar.style {
+        let value = scalar.get_value();
+
+        match scalar.style() {
             ffi::YamlPlainScalarStyle => {
-                if dec_int.is_match(scalar.value) {
-                    Ok(YamlInteger(from_str(scalar.value).unwrap()))
-                } else if oct_int.is_match(scalar.value) {
-                    let num_part = scalar.value.slice_from(2);
+                if dec_int.is_match(value) {
+                    Ok(YamlInteger(from_str(value).unwrap()))
+                } else if oct_int.is_match(value) {
+                    let num_part = value.slice_from(2);
                     Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 8).unwrap()))
-                } else if hex_int.is_match(scalar.value) {
-                    let num_part = scalar.value.slice_from(2);
+                } else if hex_int.is_match(value) {
+                    let num_part = value.slice_from(2);
                     Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 16).unwrap()))
-                } else if float_pattern.is_match(scalar.value) {
-                    Ok(YamlFloat(from_str(scalar.value).unwrap()))
-                } else if pos_inf.is_match(scalar.value) {
+                } else if float_pattern.is_match(value) {
+                    Ok(YamlFloat(from_str(value).unwrap()))
+                } else if pos_inf.is_match(value) {
                     Ok(YamlFloat(f64::INFINITY))
-                } else if neg_inf.is_match(scalar.value) {
+                } else if neg_inf.is_match(value) {
                     Ok(YamlFloat(f64::NEG_INFINITY))
-                } else if nan.is_match(scalar.value) {
+                } else if nan.is_match(value) {
                     Ok(YamlFloat(f64::NAN))
-                } else if null.is_match(scalar.value) {
+                } else if null.is_match(value) {
                     Ok(YamlNull)
-                } else if true_pattern.is_match(scalar.value) {
+                } else if true_pattern.is_match(value) {
                     Ok(YamlBool(true))
-                } else if false_pattern.is_match(scalar.value) {
+                } else if false_pattern.is_match(value) {
                     Ok(YamlBool(false))
                 } else {
-                    Ok(YamlString(scalar.value))
+                    Ok(YamlString(value))
                 }
-            }
+            },
             _ => {
-                Ok(YamlString(scalar.value))
+                Ok(YamlString(value))
             }
         }
     }

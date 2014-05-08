@@ -403,7 +403,7 @@ mod test {
                 document::YamlSequenceNode(seq) => {
                     let values = seq.values().map(|node| {
                         match node {
-                            document::YamlScalarNode(scalar) => scalar.value,
+                            document::YamlScalarNode(scalar) => scalar.get_value(),
                             _ => fail!("unexpected scalar: {:?}", node)
                         }
                     }).collect();
@@ -427,11 +427,11 @@ mod test {
                     let values = seq.pairs().map(|(key, value)| {
                         (
                             match key {
-                                document::YamlScalarNode(scalar) => scalar.value,
+                                document::YamlScalarNode(scalar) => scalar.get_value(),
                                 _ => fail!("unexpected scalar: {:?}", key)
                             },
                             match value {
-                                document::YamlScalarNode(scalar) => scalar.value,
+                                document::YamlScalarNode(scalar) => scalar.get_value(),
                                 _ => fail!("unexpected scalar: {:?}", value)
                             }
                         )
