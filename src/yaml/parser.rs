@@ -25,9 +25,9 @@ pub enum YamlErrorType {
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlMark {
-    index: uint,
-    line: uint,
-    column: uint
+    pub index: uint,
+    pub line: uint,
+    pub column: uint
 }
 
 impl YamlMark {
