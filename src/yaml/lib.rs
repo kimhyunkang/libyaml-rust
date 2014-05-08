@@ -6,14 +6,20 @@
 #![crate_type = "rlib"]
 
 #![feature(globs)]
+#![feature(phase)]
 
 extern crate libc;
+
+#[phase(syntax)]
+extern crate regex_macros;
+extern crate regex;
 
 pub mod ffi;
 pub mod event;
 pub mod parser;
 pub mod document;
 pub mod codecs;
+pub mod constructor;
 
 mod type_size;
 
