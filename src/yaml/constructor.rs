@@ -279,4 +279,18 @@ mod test {
             Err(err) => fail!("document parse failure: {:?}", err)
         }
     }
+
+    #[test]
+    fn test_single_quoted_parser() {
+        let data = r#"'here''s to "quotes"'"#;
+        let parser = YamlByteParser::init(data.as_bytes());
+
+        match parser.load().next_document() {
+            Ok(doc) => {
+                let ctor = YamlStandardConstructor::new();
+                assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_owned())), ctor.construct(doc.root()))
+            }
+            Err(err) => fail!("document parse failure: {:?}", err)
+        }
+    }
 }
