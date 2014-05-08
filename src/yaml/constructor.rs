@@ -1,10 +1,15 @@
 use document;
+use document::YamlNodeData;
 use ffi;
+use parser::YamlMark;
 
 use std::from_str::from_str;
 use std::result;
 use std::int;
 use std::f64;
+use std::u32;
+use std::char;
+use std::strbuf::StrBuf;
 
 pub trait YamlConstructor<T, E> {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<T, E>;
@@ -38,8 +43,67 @@ impl YamlStandardConstructor {
     pub fn new() -> YamlStandardConstructor {
         YamlStandardConstructor
     }
+
+    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<~str, ~str> {
+        let mut buf = StrBuf::new();
+        let mut it = value.chars();
+
+        loop {
+            match it.next() {
+                None => return Ok(buf.into_owned()),
+                Some('\\') => {
+                    // escape sequences
+                    match it.next() {
+                        None => return Err(format!("invalid escape sequence at line {:u}, col {:u}", mark.line, mark.column)),
+                        Some('0') => buf.push_char('\x00'),
+                        Some('a') => buf.push_char('\x07'),
+                        Some('b') => buf.push_char('\x08'),
+                        Some('t') | Some('\t') => buf.push_char('\t'),
+                        Some('n') => buf.push_char('\n'),
+                        Some('v') => buf.push_char('\x0b'),
+                        Some('f') => buf.push_char('\x0c'),
+                        Some('r') => buf.push_char('\x0d'),
+                        Some('e') => buf.push_char('\x1b'),
+                        Some('N') => buf.push_char('\x85'),
+                        Some('_') => buf.push_char('\xa0'),
+                        Some('L') => buf.push_char('\u2028'),
+                        Some('P') => buf.push_char('\u2029'),
+                        Some('x') => {
+                            let code:~str = it.take(2).collect();
+                            match parse_escape_sequence(code, 2) {
+                                Some(c) => buf.push_char(c),
+                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                            }
+                        },
+                        Some('u') => {
+                            let code:~str = it.take(4).collect();
+                            match parse_escape_sequence(code, 4) {
+                                Some(c) => buf.push_char(c),
+                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                            }
+                        },
+                        Some('U') => {
+                            let code:~str = it.take(8).collect();
+                            match parse_escape_sequence(code, 8) {
+                                Some(c) => buf.push_char(c),
+                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                            }
+                        },
+                        Some(c) => buf.push_char(c)
+                    }
+                },
+                Some(c) => buf.push_char(c)
+            }
+        }
+    }
 }
 
+fn parse_escape_sequence(rep: ~str, expected_len: uint) -> Option<char> {
+    match u32::parse_bytes(rep.as_bytes(), 16) {
+        Some(code) if rep.len() == expected_len => char::from_u32(code),
+        _ => None
+    }
+}
 
 impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, ~str> {
@@ -55,6 +119,7 @@ impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
         let false_pattern = regex!(r"^(false|False|FALSE|no|No|NO)$");
 
         let value = scalar.get_value();
+        let mark = scalar.start_mark();
 
         match scalar.style() {
             ffi::YamlPlainScalarStyle => {
@@ -83,6 +148,9 @@ impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
                 } else {
                     Ok(YamlString(value))
                 }
+            },
+            ffi::YamlDoubleQuotedScalarStyle => {
+                YamlStandardConstructor::parse_double_quoted(value, &mark).map(YamlString)
             },
             _ => {
                 Ok(YamlString(value))
@@ -193,6 +261,20 @@ mod test {
             Ok(doc) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(~[YamlBool(true), YamlBool(false), YamlNull])), ctor.construct(doc.root()))
+            }
+            Err(err) => fail!("document parse failure: {:?}", err)
+        }
+    }
+
+    #[test]
+    fn test_double_quoted_parser() {
+        let data = r#""hello, \"world\"""#;
+        let parser = YamlByteParser::init(data.as_bytes());
+
+        match parser.load().next_document() {
+            Ok(doc) => {
+                let ctor = YamlStandardConstructor::new();
+                assert_eq!(Ok(YamlString("hello, \"world\"".to_owned())), ctor.construct(doc.root()))
             }
             Err(err) => fail!("document parse failure: {:?}", err)
         }
