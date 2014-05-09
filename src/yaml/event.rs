@@ -2,6 +2,7 @@ use ffi;
 use ffi::{YamlEncoding, YamlSequenceStyle, YamlScalarStyle};
 use std::cast;
 use std::ptr;
+
 use codecs;
 
 #[deriving(Eq)]

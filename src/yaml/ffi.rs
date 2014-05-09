@@ -2,6 +2,7 @@ pub use type_size::*;
 use libc::{c_char, c_uchar, c_int, c_void, size_t};
 use std::ptr;
 use parser::YamlIoParser;
+use emitter::YamlEmitter;
 
 #[allow(non_camel_case_types)]
 pub type yaml_char_t = c_uchar;
@@ -10,10 +11,15 @@ pub type yaml_char_t = c_uchar;
 pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int;
 
 #[allow(non_camel_case_types)]
-pub type yaml_write_handler_t = extern fn(data: *mut c_void, buffer: *u8, size: size_t) -> c_int;
+pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *u8, size: size_t) -> c_int;
 
 #[allow(unused_variable)]
 extern fn yaml_dummy_read_handler(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int {
+    return 0;
+}
+
+#[allow(unused_variable)]
+extern fn yaml_dummy_write_handler(data: *mut YamlEmitter, buffer: *u8, size: size_t) -> c_int {
     return 0;
 }
 
@@ -67,6 +73,7 @@ pub static YAML_EMITTER_ERROR:yaml_error_type_t = 7;
 
 #[deriving(Eq)]
 #[deriving(Show)]
+#[repr(C)]
 pub enum YamlSequenceStyle {
     /** Let the emitter choose the style. */
     YamlAnySequenceStyle = 0,
@@ -79,6 +86,7 @@ pub enum YamlSequenceStyle {
 
 #[deriving(Eq)]
 #[deriving(Show)]
+#[repr(C)]
 pub enum YamlScalarStyle {
     /** Let the emitter choose the style. */
     YamlAnyScalarStyle = 0,
@@ -99,6 +107,7 @@ pub enum YamlScalarStyle {
 
 #[deriving(Eq)]
 #[deriving(Show)]
+#[repr(C)]
 pub enum YamlEncoding {
     /** Let the parser choose the encoding. */
     YamlAnyEncoding = 0,
@@ -299,6 +308,52 @@ pub struct yaml_parser_t {
     pub document: *yaml_document_t,
 }
 
+impl yaml_parser_t {
+    pub fn new() -> yaml_parser_t {
+        yaml_parser_t {
+            error: YAML_NO_ERROR,
+            problem: ptr::null(),
+            problem_offset: 0,
+            problem_value: 0,
+            problem_mark: yaml_mark_t::new(),
+            context: ptr::null(),
+            context_mark: yaml_mark_t::new(),
+
+            read_handler: yaml_dummy_read_handler,
+            read_handler_data: ptr::null(),
+
+            input: new_yaml_parser_input_t(),
+            eof: 0,
+            buffer: yaml_buffer_t::new(),
+            unread: 0,
+            raw_buffer: yaml_buffer_t::new(),
+            encoding: YamlAnyEncoding,
+            offset: 0,
+            mark: yaml_mark_t::new(),
+
+            stream_start_produced: 0,
+            stream_end_produced: 0,
+            flow_level: 0,
+            tokens: yaml_queue_t::new(),
+            tokens_parsed: 0,
+            token_available: 0,
+
+            indents: yaml_stack_t::new(),
+            indent: 0,
+            simple_key_allowed: 0,
+            simple_keys: yaml_stack_t::new(),
+
+            states: yaml_stack_t::new(),
+            parser_state: 0,
+            marks: yaml_stack_t::new(),
+            tag_directives: yaml_stack_t::new(),
+            aliases: yaml_stack_t::new(),
+
+            document: ptr::null()
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub enum yaml_break_t {
     /** Let the parser choose the break type. */
@@ -365,6 +420,63 @@ pub struct yaml_emitter_t {
     pub document: *yaml_document_t
 }
 
+impl yaml_emitter_t {
+    pub fn new() -> yaml_emitter_t {
+        yaml_emitter_t {
+            error: YAML_NO_ERROR,
+            problem: ptr::null(),
+
+            write_handler: yaml_dummy_write_handler,
+            write_handler_data: ptr::null(),
+
+            output: new_yaml_emitter_output_t(),
+            buffer: yaml_buffer_t::new(),
+            raw_buffer: yaml_buffer_t::new(),
+            encoding: YamlAnyEncoding,
+
+            canonical: 0,
+            best_indent: 0,
+            best_width: 0,
+            unicode: 0,
+            line_break: YAML_ANY_BREAK,
+
+            states: yaml_stack_t::new(),
+            state: 0,
+            events: yaml_queue_t::new(),
+            indents: yaml_stack_t::new(),
+            tag_directives: yaml_stack_t::new(),
+
+            indent: 0,
+
+            flow_level: 0,
+
+            root_context: 0,
+            sequence_context: 0,
+            mapping_context: 0,
+            simple_key_context: 0,
+
+            line: 0,
+            column: 0,
+            whitespace: 0,
+            indention: 0,
+            open_ended: 0,
+
+            anchor_data: yaml_emitter_anchor_data_t::new(),
+            tag_data: yaml_emitter_tag_data_t::new(),
+            scalar_data: yaml_emitter_scalar_data_t::new(),
+
+            opened: 0,
+            closed: 0,
+
+            anchors: ptr::null(),
+
+            last_anchor_id: 0,
+
+            document: ptr::null()
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_anchor_data_t {
     pub anchor: *yaml_char_t,
@@ -372,12 +484,33 @@ pub struct yaml_emitter_anchor_data_t {
     pub alias: c_int
 }
 
+impl yaml_emitter_anchor_data_t {
+    pub fn new() -> yaml_emitter_anchor_data_t {
+        yaml_emitter_anchor_data_t {
+            anchor: ptr::null(),
+            anchor_length: 0,
+            alias: 0
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_tag_data_t {
     pub handle: *yaml_char_t,
     pub handle_length: size_t,
     pub suffix: *yaml_char_t,
-    pub suffix_length: size_t,
+    pub suffix_length: size_t
+}
+
+impl yaml_emitter_tag_data_t {
+    pub fn new() -> yaml_emitter_tag_data_t {
+        yaml_emitter_tag_data_t {
+            handle: ptr::null(),
+            handle_length: 0,
+            suffix: ptr::null(),
+            suffix_length: 0
+        }
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -392,48 +525,17 @@ pub struct yaml_emitter_scalar_data_t {
     pub style: YamlScalarStyle,
 }
 
-impl yaml_parser_t {
-    pub fn new() -> yaml_parser_t {
-        yaml_parser_t {
-            error: 0,
-            problem: ptr::null(),
-            problem_offset: 0,
-            problem_value: 0,
-            problem_mark: yaml_mark_t::new(),
-            context: ptr::null(),
-            context_mark: yaml_mark_t::new(),
-
-            read_handler: yaml_dummy_read_handler,
-            read_handler_data: ptr::null(),
-
-            input: new_yaml_parser_input_t(),
-            eof: 0,
-            buffer: yaml_buffer_t::new(),
-            unread: 0,
-            raw_buffer: yaml_buffer_t::new(),
-            encoding: YamlAnyEncoding,
-            offset: 0,
-            mark: yaml_mark_t::new(),
-
-            stream_start_produced: 0,
-            stream_end_produced: 0,
-            flow_level: 0,
-            tokens: yaml_queue_t::new(),
-            tokens_parsed: 0,
-            token_available: 0,
-
-            indents: yaml_stack_t::new(),
-            indent: 0,
-            simple_key_allowed: 0,
-            simple_keys: yaml_stack_t::new(),
-
-            states: yaml_stack_t::new(),
-            parser_state: 0,
-            marks: yaml_stack_t::new(),
-            tag_directives: yaml_stack_t::new(),
-            aliases: yaml_stack_t::new(),
-
-            document: ptr::null()
+impl yaml_emitter_scalar_data_t {
+    pub fn new() -> yaml_emitter_scalar_data_t {
+        yaml_emitter_scalar_data_t {
+            value: ptr::null(),
+            length: 0,
+            multiline: 0,
+            flow_plain_allowed: 0,
+            block_plain_allowed: 0,
+            single_quoted_allowed: 0,
+            block_allowed: 0,
+            style: YamlAnyScalarStyle,
         }
     }
 }
@@ -542,4 +644,31 @@ extern {
     pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: yaml_read_handler_t, data: *c_void) -> c_void;
     pub fn yaml_parser_parse(parser: *mut yaml_parser_t, event: *mut yaml_event_t) -> c_int;
     pub fn yaml_parser_load(parser: *mut yaml_parser_t, document: *mut yaml_document_t) -> c_int;
+    pub fn yaml_emitter_initialize(emitter: *mut yaml_emitter_t) -> c_int;
+    pub fn yaml_emitter_emit(emitter: *mut yaml_emitter_t, event: *mut yaml_event_t) -> c_int;
+    pub fn yaml_emitter_delete(emitter: *mut yaml_emitter_t) -> c_void;
+    pub fn yaml_emitter_set_output(emitter: *mut yaml_emitter_t, handler: yaml_write_handler_t, data: *c_void) -> c_void;
+    pub fn yaml_emitter_flush(emitter: *mut yaml_emitter_t) -> c_int;
+    pub fn yaml_stream_start_event_initialize(event: *mut yaml_event_t, encoding: YamlEncoding) -> c_int;
+    pub fn yaml_stream_end_event_initialize(event: *mut yaml_event_t) -> c_int;
+    pub fn yaml_document_start_event_initialize(event: *mut yaml_event_t,
+        version_directive: *yaml_version_directive_t,
+        tag_directives_start: *yaml_tag_directive_t,
+        tag_directies_end: *yaml_tag_directive_t,
+        implicit: c_int) -> c_int;
+    pub fn yaml_document_end_event_initialize(event: *mut yaml_event_t, implicit: c_int) -> c_int;
+    pub fn yaml_alias_event_initialize(event: *mut yaml_event_t, anchor: *yaml_char_t) -> c_int;
+    pub fn yaml_scalar_event_initialize(event: *mut yaml_event_t,
+        anchor: *yaml_char_t, tag: *yaml_char_t,
+        value: *yaml_char_t, length: c_int,
+        plain_implicit: c_int, quoted_implicit: c_int,
+        style: YamlScalarStyle) -> c_int;
+    pub fn yaml_sequence_start_event_initialize(event: *mut yaml_event_t,
+        anchor: *yaml_char_t, tag: *yaml_char_t, implicit: c_int,
+        style: YamlSequenceStyle) -> c_int;
+    pub fn yaml_sequence_end_event_initialize(event: *mut yaml_event_t) -> c_int;
+    pub fn yaml_mapping_start_event_initialize(event: *mut yaml_event_t,
+        anchor: *yaml_char_t, tag: *yaml_char_t, implicit: c_int,
+        style: YamlSequenceStyle) -> c_int;
+    pub fn yaml_mapping_end_event_initialize(event: *mut yaml_event_t) -> c_int;
 }

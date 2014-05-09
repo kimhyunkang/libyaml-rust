@@ -22,6 +22,21 @@ pub enum YamlErrorType {
     YamlEmitterError,
 }
 
+impl YamlErrorType {
+    pub fn conv(error: ffi::yaml_error_type_t) -> YamlErrorType {
+        match error {
+            ffi::YAML_NO_ERROR => YamlNoError,
+            ffi::YAML_READER_ERROR => YamlReaderError,
+            ffi::YAML_SCANNER_ERROR => YamlScannerError,
+            ffi::YAML_PARSER_ERROR => YamlParserError,
+            ffi::YAML_COMPOSER_ERROR => YamlComposerError,
+            ffi::YAML_WRITER_ERROR => YamlWriterError,
+            ffi::YAML_EMITTER_ERROR => YamlEmitterError,
+            _ => fail!("unknown error type")
+        }
+    }
+}
+
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlMark {
@@ -169,19 +184,8 @@ impl YamlBaseParser {
     }
 
     unsafe fn get_error(&self) -> YamlError {
-        let kind = match self.parser_mem.error {
-            ffi::YAML_NO_ERROR => YamlNoError,
-            ffi::YAML_READER_ERROR => YamlReaderError,
-            ffi::YAML_SCANNER_ERROR => YamlScannerError,
-            ffi::YAML_PARSER_ERROR => YamlParserError,
-            ffi::YAML_COMPOSER_ERROR => YamlComposerError,
-            ffi::YAML_WRITER_ERROR => YamlWriterError,
-            ffi::YAML_EMITTER_ERROR => YamlEmitterError,
-            _ => fail!("unknown error type")
-        };
-
         YamlError {
-            kind: kind,
+            kind: YamlErrorType::conv(self.parser_mem.error),
             problem: codecs::decode_c_str(self.parser_mem.problem as *ffi::yaml_char_t),
             byte_offset: self.parser_mem.problem_offset as uint,
             problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),

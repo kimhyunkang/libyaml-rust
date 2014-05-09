@@ -20,6 +20,7 @@ use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
 pub mod ffi;
 pub mod event;
 pub mod parser;
+pub mod emitter;
 pub mod document;
 pub mod codecs;
 pub mod constructor;
