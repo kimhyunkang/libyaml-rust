@@ -39,9 +39,9 @@ use std::io::BufReader;
 use yaml::constructor::*;
 
 let data = "[1, 2, 3]";
-let reader = ~BufReader::new(data.as_bytes());
+let mut reader = BufReader::new(data.as_bytes());
 
-yaml::parse_io(reader); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
+yaml::parse_io(&mut reader); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
 ~~~~
 
 Todo
