@@ -1,5 +1,6 @@
 use ffi;
 use parser::YamlErrorType;
+use event::YamlVersionDirective;
 
 use std::ptr;
 use std::cast;
@@ -88,7 +89,7 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_document_start_event(&mut self,
-            version_directive: Option<(int, int)>,
+            version_directive: Option<YamlVersionDirective>,
             tag_directives: &[(~str, ~str)],
             implicit: bool)
         -> Result<(), (YamlErrorType, ~str)>
@@ -96,9 +97,9 @@ impl<'r> YamlEmitter<'r> {
         let mut event = ffi::yaml_event_t::new();
         let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
         let c_vsn_dir = match version_directive {
-            Some((major, minor)) => {
-                vsn_dir.major = major as libc::c_int;
-                vsn_dir.minor = minor as libc::c_int;
+            Some(directive) => {
+                vsn_dir.major = directive.major as libc::c_int;
+                vsn_dir.minor = directive.minor as libc::c_int;
                 &vsn_dir as *ffi::yaml_version_directive_t
             },
             None => ptr::null()
