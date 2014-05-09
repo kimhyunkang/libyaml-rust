@@ -9,8 +9,8 @@ use std::io::{File, BufferedReader};
 fn match_file(filename: &str, expected: YamlStandardData) {
     let file_path = Path::new(os::args()[0]).join("../../test/source").join(filename);
     println!("{}", file_path.display())
-    let reader = ~BufferedReader::new(File::open(&file_path));
-    match yaml::parse_io(reader) {
+    let mut reader = BufferedReader::new(File::open(&file_path));
+    match yaml::parse_io(&mut reader) {
         Ok(mut docs) => if docs.len() == 1 {
             assert_eq!(docs.shift().unwrap(), expected)
         } else {

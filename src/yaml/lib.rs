@@ -75,7 +75,7 @@ pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
     }
 }
 
-pub fn parse_io(reader: ~Reader) -> Result<Vec<YamlStandardData>, ~str> {
+pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, ~str> {
     let parser = parser::YamlIoParser::init(reader);
     let mut doc_stream = parser.load();
     let mut result = Vec::new();
@@ -151,7 +151,7 @@ mod test {
     #[test]
     fn test_parse_io() {
         let data = "[1, 2, 3]";
-        let reader = ~io::BufReader::new(data.as_bytes());
-        assert_eq!(Ok(vec!(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)]))), super::parse_io(reader))
+        let mut reader = io::BufReader::new(data.as_bytes());
+        assert_eq!(Ok(vec!(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)]))), super::parse_io(&mut reader))
     }
 }

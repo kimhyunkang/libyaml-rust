@@ -230,19 +230,19 @@ impl<'r> YamlByteParser<'r> {
     }
 }
 
-pub struct YamlIoParser {
+pub struct YamlIoParser<'r> {
     base_parser: YamlBaseParser,
-    reader: ~Reader,
+    reader: &'r mut Reader,
 }
 
-impl<'r> YamlParser for YamlIoParser {
+impl<'r> YamlParser for YamlIoParser<'r> {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
         &mut self.base_parser
     }
 }
 
-impl YamlIoParser {
-    pub fn init(reader: ~Reader) -> ~YamlIoParser {
+impl<'r> YamlIoParser<'r> {
+    pub fn init<'r>(reader: &'r mut Reader) -> ~YamlIoParser<'r> {
         let mut parser = ~YamlIoParser {
             base_parser: YamlBaseParser::new(),
             reader: reader
@@ -308,8 +308,8 @@ mod test {
     #[test]
     fn test_io_parser() {
         let data = "[1, 2, 3]";
-        let reader = ~io::BufReader::new(data.as_bytes());
-        let parser = parser::YamlIoParser::init(reader);
+        let mut reader = io::BufReader::new(data.as_bytes());
+        let parser = parser::YamlIoParser::init(&mut reader);
         let expected = vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
