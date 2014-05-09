@@ -1,6 +1,6 @@
 use ffi;
 use parser::YamlErrorType;
-use event::YamlVersionDirective;
+use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
 use std::cast;
@@ -90,7 +90,7 @@ impl<'r> YamlEmitter<'r> {
 
     pub fn emit_document_start_event(&mut self,
             version_directive: Option<YamlVersionDirective>,
-            tag_directives: &[(~str, ~str)],
+            tag_directives: &[YamlTagDirective],
             implicit: bool)
         -> Result<(), (YamlErrorType, ~str)>
     {
@@ -105,8 +105,8 @@ impl<'r> YamlEmitter<'r> {
             None => ptr::null()
         };
 
-        let c_strs: ~[(CString, CString)] = tag_directives.iter().map(|tuple| {
-            (tuple.ref0().to_c_str(), tuple.ref1().to_c_str())
+        let c_strs: ~[(CString, CString)] = tag_directives.iter().map(|tag| {
+            (tag.handle.to_c_str(), tag.prefix.to_c_str())
         }).collect();
         let c_tag_dirs: ~[ffi::yaml_tag_directive_t] = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
