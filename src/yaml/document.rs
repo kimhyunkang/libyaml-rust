@@ -108,7 +108,7 @@ pub trait YamlNodeData {
 
     fn end_mark(&self) -> YamlMark {
         unsafe {
-            YamlMark::conv(&self.internal_node().start_mark)
+            YamlMark::conv(&self.internal_node().end_mark)
         }
     }
 }
