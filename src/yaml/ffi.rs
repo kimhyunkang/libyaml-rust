@@ -14,28 +14,29 @@ pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u
 #[allow(non_camel_case_types)]
 pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *u8, size: size_t) -> c_int;
 
-#[allow(non_camel_case_types)]
 #[repr(C)]
-pub enum yaml_error_type_t {
+#[deriving(Show)]
+#[deriving(Eq)]
+pub enum YamlErrorType {
     /** No error is produced. */
-    YAML_NO_ERROR,
+    YamlNoError,
 
     /** Cannot allocate or reallocate a block of memory. */
-    YAML_MEMORY_ERROR,
+    YamlMemoryError,
 
     /** Cannot read or decode the input stream. */
-    YAML_READER_ERROR,
+    YamlReaderError,
     /** Cannot scan the input stream. */
-    YAML_SCANNER_ERROR,
+    YamlScannerError,
     /** Cannot parse the input stream. */
-    YAML_PARSER_ERROR,
+    YamlParserError,
     /** Cannot compose a YAML document. */
-    YAML_COMPOSER_ERROR,
+    YamlComposerError,
 
     /** Cannot write to the output stream. */
-    YAML_WRITER_ERROR,
+    YamlWriterError,
     /** Cannot emit a YAML stream. */
-    YAML_EMITTER_ERROR
+    YamlEmitterError
 }
 
 /** An empty event. */
@@ -262,7 +263,7 @@ impl yaml_document_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_parser_t {
-    pub error: yaml_error_type_t,
+    pub error: YamlErrorType,
     pub problem: *c_char,
     pub problem_offset: size_t,
     pub problem_value: c_int,
@@ -306,7 +307,7 @@ pub struct yaml_parser_t {
 impl yaml_parser_t {
     pub fn new() -> yaml_parser_t {
         yaml_parser_t {
-            error: YAML_NO_ERROR,
+            error: YamlNoError,
             problem: ptr::null(),
             problem_offset: 0,
             problem_value: 0,
@@ -363,7 +364,7 @@ pub enum yaml_break_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_t {
-    pub error: yaml_error_type_t,
+    pub error: YamlErrorType,
     pub problem: *c_char,
 
     pub write_handler: yaml_write_handler_t,
@@ -418,7 +419,7 @@ pub struct yaml_emitter_t {
 impl yaml_emitter_t {
     pub fn new() -> yaml_emitter_t {
         yaml_emitter_t {
-            error: YAML_NO_ERROR,
+            error: YamlNoError,
             problem: ptr::null(),
 
             write_handler: unsafe { cast::transmute(0) },

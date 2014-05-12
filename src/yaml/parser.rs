@@ -11,34 +11,6 @@ use std::c_vec::CVec;
 
 #[deriving(Eq)]
 #[deriving(Show)]
-pub enum YamlErrorType {
-    YamlNoError,
-    YamlMemoryError,
-    YamlReaderError,
-    YamlScannerError,
-    YamlParserError,
-    YamlComposerError,
-    YamlWriterError,
-    YamlEmitterError,
-}
-
-impl YamlErrorType {
-    pub fn conv(error: ffi::yaml_error_type_t) -> YamlErrorType {
-        match error {
-            ffi::YAML_NO_ERROR => YamlNoError,
-            ffi::YAML_READER_ERROR => YamlReaderError,
-            ffi::YAML_SCANNER_ERROR => YamlScannerError,
-            ffi::YAML_PARSER_ERROR => YamlParserError,
-            ffi::YAML_COMPOSER_ERROR => YamlComposerError,
-            ffi::YAML_WRITER_ERROR => YamlWriterError,
-            ffi::YAML_EMITTER_ERROR => YamlEmitterError,
-            _ => fail!("unknown error type")
-        }
-    }
-}
-
-#[deriving(Eq)]
-#[deriving(Show)]
 pub struct YamlMark {
     pub index: uint,
     pub line: uint,
@@ -58,7 +30,7 @@ impl YamlMark {
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlError {
-    kind: YamlErrorType,
+    kind: ffi::YamlErrorType,
     problem: Option<~str>,
     byte_offset: uint,
     problem_mark: YamlMark,
@@ -190,7 +162,7 @@ impl YamlBaseParser {
 
     unsafe fn get_error(&self) -> YamlError {
         YamlError {
-            kind: YamlErrorType::conv(self.parser_mem.error),
+            kind: self.parser_mem.error,
             problem: codecs::decode_c_str(self.parser_mem.problem as *ffi::yaml_char_t),
             byte_offset: self.parser_mem.problem_offset as uint,
             problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),
@@ -351,7 +323,7 @@ mod test {
 
         let stream_err = stream.next();
         match stream_err {
-            Some(Err(err)) => assert_eq!(parser::YamlScannerError, err.kind),
+            Some(Err(err)) => assert_eq!(ffi::YamlScannerError, err.kind),
             evt => fail!("unexpected result: {:?}", evt),
         }
     }
