@@ -187,12 +187,12 @@ mod test {
         let data = "[1, 2, 3]";
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("{:?}", err)
+            },
+            err => fail!("unexpected result: {:?}", err)
         }
     }
 
@@ -201,12 +201,12 @@ mod test {
         let data = "[0o10, 0x21, -30]";
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(~[YamlInteger(0o10), YamlInteger(0x21), YamlInteger(-30)])), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("{:?}", err)
+            },
+            err => fail!("unexpected result: {:?}", err)
         }
     }
 
@@ -215,8 +215,8 @@ mod test {
         let data = "[0.3, -.4, 1e+2, -1.2e-3]";
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 let value = ctor.construct(doc.root().unwrap());
                 match value {
@@ -233,8 +233,8 @@ mod test {
                     },
                     _ => fail!("unexpected result: {:?}", value)
                 }
-            }
-            Err(err) => fail!("document parse failure: {:?}", err)
+            },
+            err => fail!("document parse failure: {:?}", err)
         }
     }
 
@@ -243,12 +243,12 @@ mod test {
         let data = "[.inf, -.INF]";
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(~[YamlFloat(f64::INFINITY), YamlFloat(f64::NEG_INFINITY)])), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("document parse failure: {:?}", err)
+            },
+            err => fail!("document parse failure: {:?}", err)
         }
     }
 
@@ -257,12 +257,12 @@ mod test {
         let data = "[yes, False, ~]";
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(~[YamlBool(true), YamlBool(false), YamlNull])), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("document parse failure: {:?}", err)
+            },
+            err => fail!("document parse failure: {:?}", err)
         }
     }
 
@@ -271,12 +271,12 @@ mod test {
         let data = r#""hello, \"world\"""#;
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlString("hello, \"world\"".to_owned())), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("document parse failure: {:?}", err)
+            },
+            err => fail!("document parse failure: {:?}", err)
         }
     }
 
@@ -285,12 +285,12 @@ mod test {
         let data = r#"'here''s to "quotes"'"#;
         let parser = YamlByteParser::init(data.as_bytes());
 
-        match parser.load().next_document() {
-            Ok(doc) => {
+        match parser.load().next() {
+            Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_owned())), ctor.construct(doc.root().unwrap()))
-            }
-            Err(err) => fail!("document parse failure: {:?}", err)
+            },
+            err => fail!("document parse failure: {:?}", err)
         }
     }
 }

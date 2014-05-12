@@ -1,7 +1,7 @@
 use libc;
 
 use ffi;
-use event::{YamlEvent};
+use event::{YamlEvent, YamlNoEvent};
 use document::{YamlDocument};
 use codecs;
 
@@ -70,12 +70,13 @@ pub struct YamlEventStream<P> {
     parser: ~P,
 }
 
-impl<P:YamlParser> YamlEventStream<P> {
-    pub fn next_event(&mut self) -> Result<YamlEvent, YamlError> {
+impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P> {
+    fn next(&mut self) -> Option<Result<YamlEvent, YamlError>> {
         unsafe {
             match self.parser.parse_event() {
-                Some(evt) => Ok(evt),
-                None => Err(self.parser.base_parser_ref().get_error())
+                Some(YamlNoEvent) => None,
+                Some(evt) => Some(Ok(evt)),
+                None => Some(Err(self.parser.base_parser_ref().get_error()))
             }
         }
     }
@@ -85,12 +86,16 @@ pub struct YamlDocumentStream<P> {
     parser: ~P,
 }
 
-impl<P:YamlParser> YamlDocumentStream<P> {
-    pub fn next_document(&mut self) -> Result<~YamlDocument, YamlError> {
+impl<P:YamlParser> Iterator<Result<~YamlDocument, YamlError>> for YamlDocumentStream<P> {
+    fn next(&mut self) -> Option<Result<~YamlDocument, YamlError>> {
         unsafe {
             match YamlDocument::parser_load(&mut self.parser.base_parser_ref().parser_mem) {
-                Some(doc) => Ok(doc),
-                None => Err(self.parser.base_parser_ref().get_error())
+                Some(doc) => if doc.is_empty() {
+                    None
+                } else {
+                    Some(Ok(doc))
+                },
+                None => Some(Err(self.parser.base_parser_ref().get_error()))
             }
         }
     }
@@ -265,15 +270,16 @@ mod test {
     use event::*;
     use document;
     use parser;
-    use parser::YamlParser;
+    use parser::{YamlParser, YamlError};
     use ffi;
     use std::io;
+    use std::result;
 
     #[test]
     fn test_byte_parser() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let expected = vec![
+        let expected = Ok(~[
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -283,26 +289,11 @@ mod test {
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
-        ];
+        ]);
 
-        let mut produced = Vec::new();
-        let mut stream = parser.parse();
+        let stream = parser.parse();
 
-        loop {
-            match stream.next_event() {
-                Ok(YamlNoEvent) => {
-                    break;
-                },
-                Ok(evt) => {
-                    produced.push(evt);
-                },
-                Err(err) => {
-                    fail!("{:?}", err);
-                }
-            }
-        }
-
-        assert_eq!(expected, produced);
+        assert_eq!(expected, result::collect(stream));
     }
 
     #[test]
@@ -310,7 +301,7 @@ mod test {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
         let parser = parser::YamlIoParser::init(&mut reader);
-        let expected = vec![
+        let expected = Ok(~[
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -320,33 +311,18 @@ mod test {
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
-        ];
+        ]);
 
-        let mut produced = Vec::new();
-        let mut stream = parser.parse();
+        let stream = parser.parse();
 
-        loop {
-            match stream.next_event() {
-                Ok(YamlNoEvent) => {
-                    break;
-                },
-                Ok(evt) => {
-                    produced.push(evt);
-                },
-                Err(err) => {
-                    fail!("{:?}", err);
-                }
-            }
-        }
-
-        assert_eq!(expected, produced);
+        assert_eq!(expected, result::collect(stream));
     }
 
     #[test]
     fn test_byte_parser_mapping() {
         let data = "{\"a\": 1, \"b\":2}";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let expected = vec![
+        let expected = Ok(~[
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -357,26 +333,11 @@ mod test {
             YamlMappingEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
-        ];
+        ]);
 
-        let mut produced = Vec::new();
-        let mut stream = parser.parse();
+        let stream = parser.parse();
 
-        loop {
-            match stream.next_event() {
-                Ok(YamlNoEvent) => {
-                    break;
-                },
-                Ok(evt) => {
-                    produced.push(evt);
-                },
-                Err(err) => {
-                    fail!("{:?}", err);
-                }
-            }
-        }
-
-        assert_eq!(expected, produced);
+        assert_eq!(expected, result::collect(stream));
     }
 
     #[test]
@@ -385,13 +346,13 @@ mod test {
         let parser = parser::YamlByteParser::init(data.as_bytes());
         let mut stream = parser.parse();
 
-        let stream_start = stream.next_event();
-        assert_eq!(Ok(YamlStreamStartEvent(ffi::YamlUtf8Encoding)), stream_start);
+        let stream_start = stream.next();
+        assert_eq!(Some(Ok(YamlStreamStartEvent(ffi::YamlUtf8Encoding))), stream_start);
 
-        let stream_err = stream.next_event();
+        let stream_err = stream.next();
         match stream_err {
-            Ok(evt) => fail!("unexpected result: {:?}", evt),
-            Err(err) => assert_eq!(parser::YamlScannerError, err.kind)
+            Some(Err(err)) => assert_eq!(parser::YamlScannerError, err.kind),
+            evt => fail!("unexpected result: {:?}", evt),
         }
     }
 
@@ -399,11 +360,11 @@ mod test {
     fn test_document() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let mut stream = parser.load();
+        let docs_res:Result<~[~document::YamlDocument], YamlError> = result::collect(parser.load());
 
-        match stream.next_document() {
+        match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
-            Ok(doc) => match doc.root() {
+            Ok(docs) => match docs.head().and_then(|doc| doc.root()) {
                 Some(document::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
@@ -413,7 +374,7 @@ mod test {
                     }).collect();
                     assert_eq!(~["1".to_owned(), "2".to_owned(), "3".to_owned()], values)
                 },
-                _ => fail!("unexpected result: {:?}", doc)
+                _ => fail!("unexpected result: {:?}", docs)
             }
         }
     }
@@ -422,11 +383,11 @@ mod test {
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let mut stream = parser.load();
+        let docs_res:Result<~[~document::YamlDocument], YamlError> = result::collect(parser.load());
 
-        match stream.next_document() {
+        match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
-            Ok(doc) => match doc.root() {
+            Ok(docs) => match docs.head().and_then(|doc| doc.root()) {
                 Some(document::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
@@ -442,7 +403,7 @@ mod test {
                     }).collect();
                     assert_eq!(~[("a".to_owned(), "1".to_owned()), ("b".to_owned(), "2".to_owned())], values)
                 },
-                _ => fail!("unexpected result: {:?}", doc)
+                _ => fail!("unexpected result: {:?}", docs)
             }
         }
     }

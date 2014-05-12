@@ -11,8 +11,8 @@ fn match_file(filename: &str, expected: YamlStandardData) {
     println!("{}", file_path.display())
     let mut reader = BufferedReader::new(File::open(&file_path));
     match yaml::parse_io(&mut reader) {
-        Ok(mut docs) => if docs.len() == 1 {
-            assert_eq!(docs.shift().unwrap(), expected)
+        Ok(docs) => if docs.len() == 1 {
+            assert_eq!(docs.head().unwrap(), &expected)
         } else {
             fail!("too many number of documents: {:?}", docs)
         },
