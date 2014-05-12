@@ -3,9 +3,11 @@ use libc;
 use codecs;
 use ffi;
 use parser::YamlMark;
+use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
 use std::cast;
+use std::c_str::CString;
 
 pub struct YamlDocument {
     document_mem: ffi::yaml_document_t
@@ -28,6 +30,48 @@ impl YamlDocument {
         unsafe {
             ffi::yaml_document_get_root_node(&self.document_mem) == ptr::null()
         }
+    }
+
+    pub fn init(version_directive: Option<YamlVersionDirective>,
+        tag_directives: &[YamlTagDirective],
+        start_implicit: bool, end_implicit: bool) -> ~YamlDocument
+    {
+        let mut document = ~YamlDocument {
+            document_mem: ffi::yaml_document_t::new()
+        };
+
+        let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
+        let c_vsn_dir = match version_directive {
+            None => ptr::null(),
+            Some(vsn) => {
+                vsn_dir.major = vsn.major as libc::c_int;
+                vsn_dir.minor = vsn.minor as libc::c_int;
+                &vsn_dir as *ffi::yaml_version_directive_t
+            }
+        };
+
+        let c_strs: ~[(CString, CString)] = tag_directives.iter().map(|tag| {
+            (tag.handle.to_c_str(), tag.prefix.to_c_str())
+        }).collect();
+        let c_tag_dirs: ~[ffi::yaml_tag_directive_t] = c_strs.iter().map(|tuple| {
+            ffi::yaml_tag_directive_t {
+                handle: tuple.ref0().with_ref(|ptr| {ptr}),
+                prefix: tuple.ref1().with_ref(|ptr| {ptr}),
+            }
+        }).collect();
+        let tag_dir_start = c_tag_dirs.as_ptr();
+        let c_start_implicit = if start_implicit { 1 } else { 0 };
+        let c_end_implicit = if end_implicit { 1 } else { 0 };
+        unsafe {
+            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as int);
+            if ffi::yaml_document_initialize(&mut document.document_mem, c_vsn_dir,
+                tag_dir_start, tag_dir_end, c_start_implicit, c_end_implicit) == 0
+            {
+                fail!("yaml_document_initialize failed!")
+            }
+        }
+
+        document
     }
 
     unsafe fn load<'r>(&'r self, node_ptr: *ffi::yaml_node_t) -> YamlNode<'r> {

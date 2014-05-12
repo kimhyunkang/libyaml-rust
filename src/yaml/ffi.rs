@@ -635,6 +635,11 @@ extern {
     pub fn yaml_get_version_string() -> *c_char;
     pub fn yaml_get_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int) -> c_void;
     pub fn yaml_event_delete(event: *mut yaml_event_t) -> c_void;
+    pub fn yaml_document_initialize(document: *mut yaml_document_t,
+        version_directive: *yaml_version_directive_t,
+        tag_directives_start: *yaml_tag_directive_t,
+        tag_directives_end: *yaml_tag_directive_t,
+        start_implicit: c_int, end_implicit: c_int) -> c_int;
     pub fn yaml_document_get_node(document: *yaml_document_t, index: c_int) -> *yaml_node_t;
     pub fn yaml_document_get_root_node(document: *yaml_document_t) -> *yaml_node_t;
     pub fn yaml_document_delete(document: *mut yaml_document_t) -> c_void;
