@@ -14,6 +14,30 @@ pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u
 #[allow(non_camel_case_types)]
 pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *u8, size: size_t) -> c_int;
 
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub enum yaml_error_type_t {
+    /** No error is produced. */
+    YAML_NO_ERROR,
+
+    /** Cannot allocate or reallocate a block of memory. */
+    YAML_MEMORY_ERROR,
+
+    /** Cannot read or decode the input stream. */
+    YAML_READER_ERROR,
+    /** Cannot scan the input stream. */
+    YAML_SCANNER_ERROR,
+    /** Cannot parse the input stream. */
+    YAML_PARSER_ERROR,
+    /** Cannot compose a YAML document. */
+    YAML_COMPOSER_ERROR,
+
+    /** Cannot write to the output stream. */
+    YAML_WRITER_ERROR,
+    /** Cannot emit a YAML stream. */
+    YAML_EMITTER_ERROR
+}
+
 /** An empty event. */
 pub static YAML_NO_EVENT:yaml_event_type_t = 0;
 
@@ -41,26 +65,6 @@ pub static YAML_SEQUENCE_END_EVENT:yaml_event_type_t = 8;
 pub static YAML_MAPPING_START_EVENT:yaml_event_type_t = 9;
 /** A MAPPING-END event. */
 pub static YAML_MAPPING_END_EVENT:yaml_event_type_t = 10;
-
-/** No error is produced. */
-pub static YAML_NO_ERROR:yaml_error_type_t = 0;
-
-/** Cannot allocate or reallocate a block of memory. */
-pub static YAML_MEMORY_ERROR:yaml_error_type_t = 1;
-
-/** Cannot read or decode the input stream. */
-pub static YAML_READER_ERROR:yaml_error_type_t = 2;
-/** Cannot scan the input stream. */
-pub static YAML_SCANNER_ERROR:yaml_error_type_t = 3;
-/** Cannot parse the input stream. */
-pub static YAML_PARSER_ERROR:yaml_error_type_t = 4;
-/** Cannot compose a YAML document. */
-pub static YAML_COMPOSER_ERROR:yaml_error_type_t = 5;
-
-/** Cannot write to the output stream. */
-pub static YAML_WRITER_ERROR:yaml_error_type_t = 6;
-/** Cannot emit a YAML stream. */
-pub static YAML_EMITTER_ERROR:yaml_error_type_t = 7;
 
 #[deriving(Eq)]
 #[deriving(Show)]
