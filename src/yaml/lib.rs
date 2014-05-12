@@ -58,14 +58,11 @@ pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
     let ctor = YamlStandardConstructor::new();
     loop {
         match doc_stream.next_document() {
-            Err(e) => {
-                return Err(e.to_str());
-            },
+            Err(e) => return Err(e.to_str()),
             Ok(doc) => {
-                if doc.is_empty() {
-                    return Ok(result)
-                } else {
-                    match ctor.construct(doc.root()) {
+                match doc.root() {
+                    None => return Ok(result),
+                    Some(node) => match ctor.construct(node) {
                         Ok(data) => result.push(data),
                         Err(e) => return Err(e)
                     }
@@ -86,10 +83,9 @@ pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, ~str> {
                 return Err(e.to_str());
             },
             Ok(doc) => {
-                if doc.is_empty() {
-                    return Ok(result)
-                } else {
-                    match ctor.construct(doc.root()) {
+                match doc.root() {
+                    None => return Ok(result),
+                    Some(node) => match ctor.construct(node) {
                         Ok(data) => result.push(data),
                         Err(e) => return Err(e)
                     }

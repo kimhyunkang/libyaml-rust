@@ -83,7 +83,6 @@ impl YamlDocument {
             ffi::YAML_SCALAR_NODE => {
                 let scalar_data: &ffi::yaml_scalar_node_t = cast::transmute(&node.data);
                 YamlScalarNode(YamlScalarData {
-                    doc: self,
                     node: node,
                     data: scalar_data
                 })
@@ -113,10 +112,14 @@ impl YamlDocument {
         self.load(node_ptr)
     }
 
-    pub fn root<'r>(&'r self) -> YamlNode<'r> {
+    pub fn root<'r>(&'r self) -> Option<YamlNode<'r>> {
         unsafe {
             let node_ptr = ffi::yaml_document_get_root_node(&self.document_mem);
-            self.load(node_ptr)
+            if node_ptr == ptr::null() {
+                None
+            } else {
+                Some(self.load(node_ptr))
+            }
         }
     }
 }
@@ -158,7 +161,6 @@ pub trait YamlNodeData {
 }
 
 pub struct YamlScalarData<'r> {
-    doc: &'r YamlDocument,
     node: &'r ffi::yaml_node_t,
     data: &'r ffi::yaml_scalar_node_t
 }

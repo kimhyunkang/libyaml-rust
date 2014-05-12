@@ -404,7 +404,7 @@ mod test {
         match stream.next_document() {
             Err(e) => fail!("unexpected result: {:?}", e),
             Ok(doc) => match doc.root() {
-                document::YamlSequenceNode(seq) => {
+                Some(document::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
                             document::YamlScalarNode(scalar) => scalar.get_value(),
@@ -427,7 +427,7 @@ mod test {
         match stream.next_document() {
             Err(e) => fail!("unexpected result: {:?}", e),
             Ok(doc) => match doc.root() {
-                document::YamlMappingNode(seq) => {
+                Some(document::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
                             match key {
