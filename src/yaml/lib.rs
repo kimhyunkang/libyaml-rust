@@ -52,7 +52,7 @@ pub fn version() -> (int, int, int) {
     (c_major as int, c_minor as int, c_patch as int)
 }
 
-pub fn parse_bytes(bytes: &[u8]) -> Result<~[YamlStandardData], ~str> {
+pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
     let parser = parser::YamlByteParser::init(bytes);
     let ctor = YamlStandardConstructor::new();
 
@@ -64,7 +64,7 @@ pub fn parse_bytes(bytes: &[u8]) -> Result<~[YamlStandardData], ~str> {
     }))
 }
 
-pub fn parse_io(reader: &mut Reader) -> Result<~[YamlStandardData], ~str> {
+pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, ~str> {
     let parser = parser::YamlIoParser::init(reader);
     let ctor = YamlStandardConstructor::new();
 
@@ -122,13 +122,13 @@ mod test {
     #[test]
     fn test_parse_bytes() {
         let data = "[1, 2, 3]";
-        assert_eq!(Ok(~[YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_bytes(data.as_bytes()))
+        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_bytes(data.as_bytes()))
     }
 
     #[test]
     fn test_parse_io() {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
-        assert_eq!(Ok(~[YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_io(&mut reader))
+        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_io(&mut reader))
     }
 }

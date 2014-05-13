@@ -105,10 +105,10 @@ impl<'r> YamlEmitter<'r> {
             None => ptr::null()
         };
 
-        let c_strs: ~[(CString, CString)] = tag_directives.iter().map(|tag| {
+        let c_strs: Vec<(CString, CString)> = tag_directives.iter().map(|tag| {
             (tag.handle.to_c_str(), tag.prefix.to_c_str())
         }).collect();
-        let c_tag_dirs: ~[ffi::yaml_tag_directive_t] = c_strs.iter().map(|tuple| {
+        let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
                 handle: tuple.ref0().with_ref(|ptr| {ptr}),
                 prefix: tuple.ref1().with_ref(|ptr| {ptr}),

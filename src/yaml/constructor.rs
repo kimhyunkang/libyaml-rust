@@ -33,8 +33,8 @@ pub enum YamlStandardData {
     YamlString(~str),
     YamlNull,
     YamlBool(bool),
-    YamlSequence(~[YamlStandardData]),
-    YamlMapping(~[(YamlStandardData, YamlStandardData)]),
+    YamlSequence(Vec<YamlStandardData>),
+    YamlMapping(Vec<(YamlStandardData, YamlStandardData)>),
 }
 
 pub struct YamlStandardConstructor;
@@ -190,7 +190,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("unexpected result: {:?}", err)
         }
@@ -204,7 +204,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlSequence(~[YamlInteger(0o10), YamlInteger(0x21), YamlInteger(-30)])), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlSequence(vec![YamlInteger(0o10), YamlInteger(0x21), YamlInteger(-30)])), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("unexpected result: {:?}", err)
         }
@@ -246,7 +246,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlSequence(~[YamlFloat(f64::INFINITY), YamlFloat(f64::NEG_INFINITY)])), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlSequence(vec![YamlFloat(f64::INFINITY), YamlFloat(f64::NEG_INFINITY)])), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("document parse failure: {:?}", err)
         }
@@ -260,7 +260,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlSequence(~[YamlBool(true), YamlBool(false), YamlNull])), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlSequence(vec![YamlBool(true), YamlBool(false), YamlNull])), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("document parse failure: {:?}", err)
         }

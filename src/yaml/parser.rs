@@ -251,7 +251,7 @@ mod test {
     fn test_byte_parser() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let expected = Ok(~[
+        let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -273,7 +273,7 @@ mod test {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
         let parser = parser::YamlIoParser::init(&mut reader);
-        let expected = Ok(~[
+        let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -294,7 +294,7 @@ mod test {
     fn test_byte_parser_mapping() {
         let data = "{\"a\": 1, \"b\":2}";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let expected = Ok(~[
+        let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
@@ -332,11 +332,11 @@ mod test {
     fn test_document() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let docs_res:Result<~[Box<document::YamlDocument>], YamlError> = result::collect(parser.load());
+        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
-            Ok(docs) => match docs.head().and_then(|doc| doc.root()) {
+            Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
@@ -344,7 +344,7 @@ mod test {
                             _ => fail!("unexpected scalar: {:?}", node)
                         }
                     }).collect();
-                    assert_eq!(~["1".to_owned(), "2".to_owned(), "3".to_owned()], values)
+                    assert_eq!(vec!["1".to_owned(), "2".to_owned(), "3".to_owned()], values)
                 },
                 _ => fail!("unexpected result: {:?}", docs)
             }
@@ -355,11 +355,11 @@ mod test {
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let docs_res:Result<~[Box<document::YamlDocument>], YamlError> = result::collect(parser.load());
+        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
-            Ok(docs) => match docs.head().and_then(|doc| doc.root()) {
+            Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
@@ -373,7 +373,7 @@ mod test {
                             }
                         )
                     }).collect();
-                    assert_eq!(~[("a".to_owned(), "1".to_owned()), ("b".to_owned(), "2".to_owned())], values)
+                    assert_eq!(vec![("a".to_owned(), "1".to_owned()), ("b".to_owned(), "2".to_owned())], values)
                 },
                 _ => fail!("unexpected result: {:?}", docs)
             }

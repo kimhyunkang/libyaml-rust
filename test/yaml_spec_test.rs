@@ -7,12 +7,13 @@ use std::os;
 use std::io::{File, BufferedReader};
 
 fn match_file(filename: &str, expected: YamlStandardData) {
-    let file_path = Path::new(os::args()[0]).join("../../test/source").join(filename);
+    let this_path = os::args().as_slice()[0].clone();
+    let file_path = Path::new(this_path).join("../../test/source").join(filename);
     println!("{}", file_path.display())
     let mut reader = BufferedReader::new(File::open(&file_path));
     match yaml::parse_io(&mut reader) {
         Ok(docs) => if docs.len() == 1 {
-            assert_eq!(docs.head().unwrap(), &expected)
+            assert_eq!(docs.as_slice().head().unwrap(), &expected)
         } else {
             fail!("too many number of documents: {:?}", docs)
         },
@@ -40,19 +41,19 @@ macro_rules! yfloat(
 
 macro_rules! yseq(
     ($($e:expr),*) => (
-        YamlSequence(~[$(($e),)*])
+        YamlSequence(vec![$(($e),)*])
     )
 )
 
 macro_rules! ymap(
     ($($k:expr : $v:expr),*) => (
-        YamlMapping(~[$((ystr!($k), $v),)*])
+        YamlMapping(vec![$((ystr!($k), $v),)*])
     )
 )
 
 macro_rules! y_cmp_map(
     ($($k:expr : $v:expr),*) => (
-        YamlMapping(~[$(($k, $v),)*])
+        YamlMapping(vec![$(($k, $v),)*])
     )
 )
 
