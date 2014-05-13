@@ -6,7 +6,7 @@ use parser::YamlMark;
 use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
-use std::cast;
+use std::mem;
 use std::c_str::CString;
 
 pub struct YamlDocument {
@@ -81,14 +81,14 @@ impl YamlDocument {
         let node = &*node_ptr;
         match node.node_type {
             ffi::YAML_SCALAR_NODE => {
-                let scalar_data: &ffi::yaml_scalar_node_t = cast::transmute(&node.data);
+                let scalar_data: &ffi::yaml_scalar_node_t = mem::transmute(&node.data);
                 YamlScalarNode(YamlScalarData {
                     node: node,
                     data: scalar_data
                 })
             },
             ffi::YAML_SEQUENCE_NODE => {
-                let sequence_data: &ffi::yaml_sequence_node_t = cast::transmute(&node.data);
+                let sequence_data: &ffi::yaml_sequence_node_t = mem::transmute(&node.data);
                 YamlSequenceNode(YamlSequenceData {
                     doc: self,
                     node: node,
@@ -96,7 +96,7 @@ impl YamlDocument {
                 })
             },
             ffi::YAML_MAPPING_NODE => {
-                let mapping_data: &ffi::yaml_sequence_node_t = cast::transmute(&node.data);
+                let mapping_data: &ffi::yaml_sequence_node_t = mem::transmute(&node.data);
                 YamlMappingNode(YamlMappingData {
                     doc: self,
                     node: node,

@@ -5,6 +5,7 @@ use event::{YamlEvent, YamlNoEvent};
 use document::{YamlDocument};
 use codecs;
 
+use std::mem;
 use std::io;
 use std::c_vec::CVec;
 
@@ -229,7 +230,7 @@ impl<'r> YamlIoParser<'r> {
                 fail!("failed to initialize yaml_parser_t");
             }
 
-            ffi::yaml_parser_set_input(&mut parser.base_parser.parser_mem, handle_reader_cb, cast::transmute(&mut *parser));
+            ffi::yaml_parser_set_input(&mut parser.base_parser.parser_mem, handle_reader_cb, mem::transmute(&mut *parser));
         }
 
         parser

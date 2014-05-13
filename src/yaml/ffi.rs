@@ -1,7 +1,7 @@
 pub use type_size::*;
 use libc::{c_char, c_uchar, c_int, c_void, size_t};
 use std::ptr;
-use std::cast;
+use std::mem;
 use parser::YamlIoParser;
 use emitter::YamlEmitter;
 
@@ -315,7 +315,7 @@ impl yaml_parser_t {
             context: ptr::null(),
             context_mark: yaml_mark_t::new(),
 
-            read_handler: unsafe { cast::transmute(0) },
+            read_handler: unsafe { mem::transmute(0) },
             read_handler_data: ptr::null(),
 
             input: new_yaml_parser_input_t(),
@@ -422,7 +422,7 @@ impl yaml_emitter_t {
             error: YamlNoError,
             problem: ptr::null(),
 
-            write_handler: unsafe { cast::transmute(0) },
+            write_handler: unsafe { mem::transmute(0) },
             write_handler_data: ptr::null(),
 
             output: new_yaml_emitter_output_t(),

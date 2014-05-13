@@ -3,7 +3,7 @@ use ffi::YamlErrorType;
 use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
-use std::cast;
+use std::mem;
 use std::c_vec::CVec;
 use std::c_str::CString;
 use libc;
@@ -45,7 +45,7 @@ impl<'r> YamlEmitter<'r> {
                 fail!("failed to initialize yaml_emitter_t");
             }
 
-            ffi::yaml_emitter_set_output(&mut emitter.base_emitter.emitter_mem, handle_writer_cb, cast::transmute(&mut *emitter));
+            ffi::yaml_emitter_set_output(&mut emitter.base_emitter.emitter_mem, handle_writer_cb, mem::transmute(&mut *emitter));
         }
 
         emitter
