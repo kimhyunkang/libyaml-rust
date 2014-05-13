@@ -5,7 +5,6 @@ use event::{YamlEvent, YamlNoEvent};
 use document::{YamlDocument};
 use codecs;
 
-use std::cast;
 use std::io;
 use std::c_vec::CVec;
 
@@ -39,7 +38,7 @@ pub struct YamlError {
 }
 
 pub struct YamlEventStream<P> {
-    parser: ~P,
+    parser: Box<P>,
 }
 
 impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P> {
@@ -55,11 +54,11 @@ impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P>
 }
 
 pub struct YamlDocumentStream<P> {
-    parser: ~P,
+    parser: Box<P>,
 }
 
-impl<P:YamlParser> Iterator<Result<~YamlDocument, YamlError>> for YamlDocumentStream<P> {
-    fn next(&mut self) -> Option<Result<~YamlDocument, YamlError>> {
+impl<P:YamlParser> Iterator<Result<Box<YamlDocument>, YamlError>> for YamlDocumentStream<P> {
+    fn next(&mut self) -> Option<Result<Box<YamlDocument>, YamlError>> {
         unsafe {
             match YamlDocument::parser_load(&mut self.parser.base_parser_ref().parser_mem) {
                 Some(doc) => if doc.is_empty() {
@@ -191,8 +190,8 @@ impl<'r> YamlParser for YamlByteParser<'r> {
 }
 
 impl<'r> YamlByteParser<'r> {
-    pub fn init(bytes: &'r [u8]) -> ~YamlByteParser<'r> {
-        let mut parser = ~YamlByteParser {
+    pub fn init(bytes: &'r [u8]) -> Box<YamlByteParser<'r>> {
+        let mut parser = box YamlByteParser {
             base_parser: YamlBaseParser::new()
         };
 
@@ -219,8 +218,8 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 }
 
 impl<'r> YamlIoParser<'r> {
-    pub fn init<'r>(reader: &'r mut Reader) -> ~YamlIoParser<'r> {
-        let mut parser = ~YamlIoParser {
+    pub fn init<'r>(reader: &'r mut Reader) -> Box<YamlIoParser<'r>> {
+        let mut parser = box YamlIoParser {
             base_parser: YamlBaseParser::new(),
             reader: reader
         };
@@ -332,7 +331,7 @@ mod test {
     fn test_document() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let docs_res:Result<~[~document::YamlDocument], YamlError> = result::collect(parser.load());
+        let docs_res:Result<~[Box<document::YamlDocument>], YamlError> = result::collect(parser.load());
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
@@ -355,7 +354,7 @@ mod test {
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
         let parser = parser::YamlByteParser::init(data.as_bytes());
-        let docs_res:Result<~[~document::YamlDocument], YamlError> = result::collect(parser.load());
+        let docs_res:Result<~[Box<document::YamlDocument>], YamlError> = result::collect(parser.load());
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),

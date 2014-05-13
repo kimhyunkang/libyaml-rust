@@ -14,8 +14,8 @@ pub struct YamlDocument {
 }
 
 impl YamlDocument {
-    pub unsafe fn parser_load(parser: &mut ffi::yaml_parser_t) -> Option<~YamlDocument> {
-        let mut document = ~YamlDocument {
+    pub unsafe fn parser_load(parser: &mut ffi::yaml_parser_t) -> Option<Box<YamlDocument>> {
+        let mut document = box YamlDocument {
             document_mem: ffi::yaml_document_t::new()
         };
 
@@ -34,9 +34,9 @@ impl YamlDocument {
 
     pub fn init(version_directive: Option<YamlVersionDirective>,
         tag_directives: &[YamlTagDirective],
-        start_implicit: bool, end_implicit: bool) -> ~YamlDocument
+        start_implicit: bool, end_implicit: bool) -> Box<YamlDocument>
     {
-        let mut document = ~YamlDocument {
+        let mut document = box YamlDocument {
             document_mem: ffi::yaml_document_t::new()
         };
 

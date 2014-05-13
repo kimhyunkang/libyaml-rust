@@ -639,6 +639,13 @@ extern {
     pub fn yaml_document_get_node(document: *yaml_document_t, index: c_int) -> *yaml_node_t;
     pub fn yaml_document_get_root_node(document: *yaml_document_t) -> *yaml_node_t;
     pub fn yaml_document_delete(document: *mut yaml_document_t) -> c_void;
+    pub fn yaml_document_add_scalar(document: *mut yaml_document_t,
+        tag: *yaml_char_t, value: *yaml_char_t, length: c_int,
+        style: YamlScalarStyle) -> c_int;
+    pub fn yaml_document_add_sequence(document: *mut yaml_document_t,
+        tag: *yaml_char_t, style: YamlSequenceStyle) -> c_int;
+    pub fn yaml_document_add_mapping(document: *mut yaml_document_t,
+        tag: *yaml_char_t, style: YamlSequenceStyle) -> c_int;
     pub fn yaml_parser_initialize(parser: *mut yaml_parser_t) -> c_int;
     pub fn yaml_parser_delete(parser: *mut yaml_parser_t) -> c_void;
     pub fn yaml_parser_set_input_string(parser: *mut yaml_parser_t, input: *yaml_char_t, size: size_t) -> c_void;

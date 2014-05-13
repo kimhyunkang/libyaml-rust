@@ -34,8 +34,8 @@ pub struct YamlEmitter<'r> {
 }
 
 impl<'r> YamlEmitter<'r> {
-    pub fn init<'r>(writer: &'r mut Writer) -> ~YamlEmitter<'r> {
-        let mut emitter = ~YamlEmitter {
+    pub fn init<'r>(writer: &'r mut Writer) -> Box<YamlEmitter<'r>> {
+        let mut emitter = box YamlEmitter {
             base_emitter: YamlBaseEmitter::new(),
             writer: writer
         };
