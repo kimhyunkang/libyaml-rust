@@ -1,4 +1,4 @@
-all: build/.lib.dummy
+all: check
 
 build/.lib.dummy: Makefile src/yaml/type_size.rs $(wildcard src/yaml/*.rs)
 	mkdir -p build
