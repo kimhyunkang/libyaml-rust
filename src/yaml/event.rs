@@ -16,15 +16,15 @@ pub struct YamlVersionDirective {
 #[deriving(Show)]
 #[deriving(Clone)]
 pub struct YamlTagDirective {
-    pub handle: ~str,
-    pub prefix: ~str,
+    pub handle: String,
+    pub prefix: String,
 }
 
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlSequenceParam {
-    pub anchor: Option<~str>,
-    pub tag: Option<~str>,
+    pub anchor: Option<String>,
+    pub tag: Option<String>,
     pub implicit: bool,
     pub style: YamlSequenceStyle
 }
@@ -32,9 +32,9 @@ pub struct YamlSequenceParam {
 #[deriving(Eq)]
 #[deriving(Show)]
 pub struct YamlScalarParam {
-    pub anchor: Option<~str>,
-    pub tag: Option<~str>,
-    pub value: ~str,
+    pub anchor: Option<String>,
+    pub tag: Option<String>,
+    pub value: String,
     pub plain_implicit: bool,
     pub quoted_implicit: bool,
     pub style: YamlScalarStyle
@@ -48,7 +48,7 @@ pub enum YamlEvent {
     YamlStreamEndEvent,
     YamlDocumentStartEvent(Option<YamlVersionDirective>, ~[YamlTagDirective], bool),
     YamlDocumentEndEvent(bool),
-    YamlAliasEvent(~str),
+    YamlAliasEvent(String),
     YamlScalarEvent(YamlScalarParam),
     YamlSequenceStartEvent(YamlSequenceParam),
     YamlSequenceEndEvent,

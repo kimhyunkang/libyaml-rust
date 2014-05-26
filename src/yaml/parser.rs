@@ -31,10 +31,10 @@ impl YamlMark {
 #[deriving(Show)]
 pub struct YamlError {
     kind: ffi::YamlErrorType,
-    problem: Option<~str>,
+    problem: Option<String>,
     byte_offset: uint,
     problem_mark: YamlMark,
-    context: Option<~str>,
+    context: Option<String>,
     context_mark: YamlMark,
 }
 

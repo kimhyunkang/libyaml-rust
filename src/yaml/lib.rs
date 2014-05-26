@@ -28,7 +28,7 @@ pub mod constructor;
 
 mod type_size;
 
-pub fn version_string() -> ~str {
+pub fn version_string() -> String {
     let c_vsn = unsafe {
         std::c_str::CString::new(ffi::yaml_get_version_string(), false)
     };
@@ -52,7 +52,7 @@ pub fn version() -> (int, int, int) {
     (c_major as int, c_minor as int, c_patch as int)
 }
 
-pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
+pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
     let parser = parser::YamlByteParser::init(bytes);
     let ctor = YamlStandardConstructor::new();
 
@@ -64,7 +64,7 @@ pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, ~str> {
     }))
 }
 
-pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, ~str> {
+pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
     let parser = parser::YamlIoParser::init(reader);
     let ctor = YamlStandardConstructor::new();
 

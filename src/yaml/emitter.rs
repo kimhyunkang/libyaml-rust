@@ -51,14 +51,14 @@ impl<'r> YamlEmitter<'r> {
         emitter
     }
 
-    pub fn get_error(&self) -> (YamlErrorType, ~str) {
+    pub fn get_error(&self) -> (YamlErrorType, String) {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
             (emitter_mem.error, CString::new(emitter_mem.problem, false).as_str().unwrap().to_owned())
         }
     }
 
-    pub fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_stream_start_event_initialize(&mut event, encoding) == 0 {
@@ -73,7 +73,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_stream_end_event(&mut self) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_stream_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_stream_end_event_initialize(&mut event) == 0 {
@@ -92,7 +92,7 @@ impl<'r> YamlEmitter<'r> {
             version_directive: Option<YamlVersionDirective>,
             tag_directives: &[YamlTagDirective],
             implicit: bool)
-        -> Result<(), (YamlErrorType, ~str)>
+        -> Result<(), (YamlErrorType, String)>
     {
         let mut event = ffi::yaml_event_t::new();
         let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
@@ -131,7 +131,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_document_end_event(&mut self, implicit: bool) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_document_end_event(&mut self, implicit: bool) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         let c_implicit = if implicit { 1 } else { 0 };
         unsafe {
@@ -147,7 +147,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_alias_event(&mut self, anchor: &str) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_alias_event(&mut self, anchor: &str) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         let c_anchor = anchor.to_c_str();
 
@@ -168,7 +168,7 @@ impl<'r> YamlEmitter<'r> {
 
     pub fn emit_scalar_event(&mut self, anchor: Option<&str>, tag: Option<&str>,
         value: &str, plain_implicit: bool, quoted_implicit: bool,
-        style: ffi::YamlScalarStyle) -> Result<(), (YamlErrorType, ~str)>
+        style: ffi::YamlScalarStyle) -> Result<(), (YamlErrorType, String)>
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
@@ -203,7 +203,7 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_sequence_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
-        style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, ~str)>
+        style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, String)>
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
@@ -234,7 +234,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_sequence_end_event(&mut self) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_sequence_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_sequence_end_event_initialize(&mut event) == 0 {
@@ -250,7 +250,7 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_mapping_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
-        style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, ~str)>
+        style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, String)>
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
@@ -281,7 +281,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_mapping_end_event(&mut self) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn emit_mapping_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_mapping_end_event_initialize(&mut event) == 0 {
@@ -296,7 +296,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn flush(&mut self) -> Result<(), (YamlErrorType, ~str)> {
+    pub fn flush(&mut self) -> Result<(), (YamlErrorType, String)> {
         unsafe {
             if ffi::yaml_emitter_flush(&mut self.base_emitter.emitter_mem) != 0 {
                 Ok(())

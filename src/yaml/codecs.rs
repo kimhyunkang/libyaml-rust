@@ -7,7 +7,7 @@ use std::ptr;
 use std::c_str::CString;
 use std::c_vec::CVec;
 
-pub fn decode_c_str(c_str: *ffi::yaml_char_t) -> Option<~str> {
+pub fn decode_c_str(c_str: *ffi::yaml_char_t) -> Option<String> {
     if c_str == ptr::null() {
         None
     } else {
@@ -17,7 +17,7 @@ pub fn decode_c_str(c_str: *ffi::yaml_char_t) -> Option<~str> {
     }
 }
 
-pub fn decode_buf(buf: *ffi::yaml_char_t, length: libc::size_t) -> Option<~str> {
+pub fn decode_buf(buf: *ffi::yaml_char_t, length: libc::size_t) -> Option<String> {
     if buf == ptr::null() {
         None
     } else {

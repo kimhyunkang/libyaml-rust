@@ -9,7 +9,6 @@ use std::int;
 use std::f64;
 use std::u32;
 use std::char;
-use std::strbuf::StrBuf;
 
 pub trait YamlConstructor<T, E> {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<T, E>;
@@ -30,7 +29,7 @@ pub trait YamlConstructor<T, E> {
 pub enum YamlStandardData {
     YamlInteger(int),
     YamlFloat(f64),
-    YamlString(~str),
+    YamlString(String),
     YamlNull,
     YamlBool(bool),
     YamlSequence(Vec<YamlStandardData>),
@@ -44,8 +43,8 @@ impl YamlStandardConstructor {
         YamlStandardConstructor
     }
 
-    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<~str, ~str> {
-        let mut buf = StrBuf::new();
+    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, String> {
+        let mut buf = String::new();
         let mut it = value.chars();
 
         loop {
@@ -69,21 +68,21 @@ impl YamlStandardConstructor {
                         Some('L') => buf.push_char('\u2028'),
                         Some('P') => buf.push_char('\u2029'),
                         Some('x') => {
-                            let code:~str = it.take(2).collect();
+                            let code:String = it.take(2).collect();
                             match parse_escape_sequence(code, 2) {
                                 Some(c) => buf.push_char(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
                             }
                         },
                         Some('u') => {
-                            let code:~str = it.take(4).collect();
+                            let code:String = it.take(4).collect();
                             match parse_escape_sequence(code, 4) {
                                 Some(c) => buf.push_char(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
                             }
                         },
                         Some('U') => {
-                            let code:~str = it.take(8).collect();
+                            let code:String = it.take(8).collect();
                             match parse_escape_sequence(code, 8) {
                                 Some(c) => buf.push_char(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
@@ -98,15 +97,15 @@ impl YamlStandardConstructor {
     }
 }
 
-fn parse_escape_sequence(rep: ~str, expected_len: uint) -> Option<char> {
+fn parse_escape_sequence(rep: String, expected_len: uint) -> Option<char> {
     match u32::parse_bytes(rep.as_bytes(), 16) {
         Some(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
 }
 
-impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
-    fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, ~str> {
+impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
+    fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, String> {
         let dec_int = regex!(r"^[-+]?[0-9]+$");
         let oct_int = regex!(r"^0o[0-7]+$");
         let hex_int = regex!(r"^0x[0-9a-fA-F]+$");
@@ -123,34 +122,34 @@ impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
 
         match scalar.style() {
             ffi::YamlPlainScalarStyle => {
-                if dec_int.is_match(value) {
-                    Ok(YamlInteger(from_str(value).unwrap()))
-                } else if oct_int.is_match(value) {
-                    let num_part = value.slice_from(2);
+                if dec_int.is_match(value.as_slice()) {
+                    Ok(YamlInteger(from_str(value.as_slice()).unwrap()))
+                } else if oct_int.is_match(value.as_slice()) {
+                    let num_part = value.as_slice().slice_from(2);
                     Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 8).unwrap()))
-                } else if hex_int.is_match(value) {
-                    let num_part = value.slice_from(2);
+                } else if hex_int.is_match(value.as_slice()) {
+                    let num_part = value.as_slice().slice_from(2);
                     Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 16).unwrap()))
-                } else if float_pattern.is_match(value) {
-                    Ok(YamlFloat(from_str(value).unwrap()))
-                } else if pos_inf.is_match(value) {
+                } else if float_pattern.is_match(value.as_slice()) {
+                    Ok(YamlFloat(from_str(value.as_slice()).unwrap()))
+                } else if pos_inf.is_match(value.as_slice()) {
                     Ok(YamlFloat(f64::INFINITY))
-                } else if neg_inf.is_match(value) {
+                } else if neg_inf.is_match(value.as_slice()) {
                     Ok(YamlFloat(f64::NEG_INFINITY))
-                } else if nan.is_match(value) {
+                } else if nan.is_match(value.as_slice()) {
                     Ok(YamlFloat(f64::NAN))
-                } else if null.is_match(value) {
+                } else if null.is_match(value.as_slice()) {
                     Ok(YamlNull)
-                } else if true_pattern.is_match(value) {
+                } else if true_pattern.is_match(value.as_slice()) {
                     Ok(YamlBool(true))
-                } else if false_pattern.is_match(value) {
+                } else if false_pattern.is_match(value.as_slice()) {
                     Ok(YamlBool(false))
                 } else {
                     Ok(YamlString(value))
                 }
             },
             ffi::YamlDoubleQuotedScalarStyle => {
-                YamlStandardConstructor::parse_double_quoted(value, &mark).map(YamlString)
+                YamlStandardConstructor::parse_double_quoted(value.as_slice(), &mark).map(YamlString)
             },
             _ => {
                 Ok(YamlString(value))
@@ -158,11 +157,11 @@ impl YamlConstructor<YamlStandardData, ~str> for YamlStandardConstructor {
         }
     }
 
-    fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, ~str> {
+    fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, String> {
         result::collect(sequence.values().map(|node| { self.construct(node) })).map(|list| YamlSequence(list))
     }
 
-    fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, ~str> {
+    fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, String> {
         let pairs = mapping.pairs().map(|(key_node, value_node)| {
             match self.construct(key_node) {
                 Ok(key) => match self.construct(value_node) {

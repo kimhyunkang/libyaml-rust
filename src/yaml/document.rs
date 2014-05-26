@@ -141,7 +141,7 @@ pub enum YamlNode<'r> {
 pub trait YamlNodeData {
     unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t;
 
-    fn tag(&self) -> Option<~str> {
+    fn tag(&self) -> Option<String> {
         unsafe {
             codecs::decode_c_str(self.internal_node().tag)
         }
@@ -172,7 +172,7 @@ impl<'r> YamlNodeData for YamlScalarData<'r> {
 }
 
 impl<'r> YamlScalarData<'r> {
-    pub fn get_value(&self) -> ~str {
+    pub fn get_value(&self) -> String {
         codecs::decode_buf(self.data.value, self.data.length).unwrap()
     }
 
