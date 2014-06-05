@@ -36,7 +36,7 @@ pub fn version_string() -> String {
         std::c_str::CString::new(ffi::yaml_get_version_string(), false)
     };
 
-    c_vsn.as_str().unwrap().to_owned()
+    c_vsn.as_str().unwrap().to_string()
 }
 
 pub fn version() -> (int, int, int) {
@@ -88,7 +88,7 @@ mod test {
     #[test]
     fn test_version_string() {
         let vsn = super::version_string();
-        assert!("0.1.4".to_owned() <= vsn && vsn < "0.2".to_owned())
+        assert!("0.1.4".to_string() <= vsn && vsn < "0.2".to_string())
     }
 
     #[test]

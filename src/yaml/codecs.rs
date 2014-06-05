@@ -12,7 +12,7 @@ pub fn decode_c_str(c_str: *ffi::yaml_char_t) -> Option<String> {
         None
     } else {
         unsafe {
-            CString::new(c_str as *i8, false).as_str().map(|s| { s.to_owned() })
+            CString::new(c_str as *i8, false).as_str().map(|s| { s.to_string() })
         }
     }
 }
@@ -22,7 +22,7 @@ pub fn decode_buf(buf: *ffi::yaml_char_t, length: libc::size_t) -> Option<String
         None
     } else {
         unsafe {
-            str::from_utf8(CVec::new(buf as *mut u8, length as uint).as_slice()).map(|s| { s.to_owned() })
+            str::from_utf8(CVec::new(buf as *mut u8, length as uint).as_slice()).map(|s| { s.to_string() })
         }
     }
 }

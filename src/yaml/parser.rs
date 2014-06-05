@@ -253,9 +253,9 @@ mod test {
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -275,9 +275,9 @@ mod test {
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -296,10 +296,10 @@ mod test {
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
             YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "a".to_owned(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "b".to_owned(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_owned(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "a".to_string(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "b".to_string(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
             YamlMappingEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -342,7 +342,7 @@ mod test {
                             _ => fail!("unexpected scalar: {:?}", node)
                         }
                     }).collect();
-                    assert_eq!(vec!["1".to_owned(), "2".to_owned(), "3".to_owned()], values)
+                    assert_eq!(vec!["1".to_string(), "2".to_string(), "3".to_string()], values)
                 },
                 _ => fail!("unexpected result: {:?}", docs)
             }
@@ -371,7 +371,7 @@ mod test {
                             }
                         )
                     }).collect();
-                    assert_eq!(vec![("a".to_owned(), "1".to_owned()), ("b".to_owned(), "2".to_owned())], values)
+                    assert_eq!(vec![("a".to_string(), "1".to_string()), ("b".to_string(), "2".to_string())], values)
                 },
                 _ => fail!("unexpected result: {:?}", docs)
             }

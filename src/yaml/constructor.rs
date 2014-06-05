@@ -49,7 +49,7 @@ impl YamlStandardConstructor {
 
         loop {
             match it.next() {
-                None => return Ok(buf.into_owned()),
+                None => return Ok(buf),
                 Some('\\') => {
                     // escape sequences
                     match it.next() {
@@ -273,7 +273,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlString("hello, \"world\"".to_owned())), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlString("hello, \"world\"".to_string())), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("document parse failure: {:?}", err)
         }
@@ -287,7 +287,7 @@ mod test {
         match parser.load().next() {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
-                assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_owned())), ctor.construct(doc.root().unwrap()))
+                assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_string())), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("document parse failure: {:?}", err)
         }

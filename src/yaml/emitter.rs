@@ -54,7 +54,7 @@ impl<'r> YamlEmitter<'r> {
     pub fn get_error(&self) -> (YamlErrorType, String) {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
-            (emitter_mem.error, CString::new(emitter_mem.problem, false).as_str().unwrap().to_owned())
+            (emitter_mem.error, CString::new(emitter_mem.problem, false).as_str().unwrap().to_string())
         }
     }
 

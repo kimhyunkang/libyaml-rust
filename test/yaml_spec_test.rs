@@ -24,7 +24,7 @@ fn match_file(filename: &str, expected: YamlStandardData) {
 
 macro_rules! ystr(
     ($e: expr) => (
-        YamlString($e.to_owned())
+        YamlString($e.to_string())
     )
 )
 
