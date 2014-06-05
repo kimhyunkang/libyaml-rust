@@ -8,6 +8,9 @@
 #![feature(globs)]
 #![feature(phase)]
 
+#[cfg(test)]
+extern crate debug;
+
 extern crate libc;
 
 #[phase(syntax)]

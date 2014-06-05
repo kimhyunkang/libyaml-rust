@@ -1,5 +1,6 @@
 #![feature(macro_rules)]
 
+extern crate debug;
 extern crate yaml;
 
 use yaml::constructor::{YamlStandardData, YamlMapping, YamlSequence, YamlString, YamlInteger, YamlFloat};
