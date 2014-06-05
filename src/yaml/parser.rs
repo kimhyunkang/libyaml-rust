@@ -9,8 +9,7 @@ use std::mem;
 use std::io;
 use std::c_vec::CVec;
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub struct YamlMark {
     pub index: uint,
     pub line: uint,
@@ -27,8 +26,7 @@ impl YamlMark {
     }
 }
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub struct YamlError {
     kind: ffi::YamlErrorType,
     problem: Option<String>,

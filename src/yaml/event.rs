@@ -5,23 +5,19 @@ use std::ptr;
 
 use codecs;
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub struct YamlVersionDirective {
     pub major: int,
     pub minor: int,
 }
 
-#[deriving(Eq)]
-#[deriving(Show)]
-#[deriving(Clone)]
+#[deriving(Show, Clone, PartialEq)]
 pub struct YamlTagDirective {
     pub handle: String,
     pub prefix: String,
 }
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub struct YamlSequenceParam {
     pub anchor: Option<String>,
     pub tag: Option<String>,
@@ -29,8 +25,7 @@ pub struct YamlSequenceParam {
     pub style: YamlSequenceStyle
 }
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub struct YamlScalarParam {
     pub anchor: Option<String>,
     pub tag: Option<String>,
@@ -40,8 +35,7 @@ pub struct YamlScalarParam {
     pub style: YamlScalarStyle
 }
 
-#[deriving(Eq)]
-#[deriving(Show)]
+#[deriving(Show, PartialEq)]
 pub enum YamlEvent {
     YamlNoEvent,
     YamlStreamStartEvent(YamlEncoding),
