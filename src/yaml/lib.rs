@@ -55,8 +55,12 @@ pub fn version() -> (int, int, int) {
     (c_major as int, c_minor as int, c_patch as int)
 }
 
-pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
-    let parser = parser::YamlByteParser::init(bytes);
+pub fn parse_bytes_utf8(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
+    parse_bytes(bytes, ffi::YamlUtf8Encoding)
+}
+
+pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
+    let parser = parser::YamlByteParser::init(bytes, encoding);
     let ctor = YamlStandardConstructor::new();
 
     result::collect(parser.load().map(|doc_res| {
@@ -67,8 +71,12 @@ pub fn parse_bytes(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
     }))
 }
 
-pub fn parse_io(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
-    let parser = parser::YamlIoParser::init(reader);
+pub fn parse_io_utf8(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
+    parse_io(reader, ffi::YamlUtf8Encoding)
+}
+
+pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
+    let parser = parser::YamlIoParser::init(reader, encoding);
     let ctor = YamlStandardConstructor::new();
 
     result::collect(parser.load().map(|doc_res| {
@@ -125,13 +133,13 @@ mod test {
     #[test]
     fn test_parse_bytes() {
         let data = "[1, 2, 3]";
-        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_bytes(data.as_bytes()))
+        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_bytes_utf8(data.as_bytes()))
     }
 
     #[test]
     fn test_parse_io() {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
-        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_io(&mut reader))
+        assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_io_utf8(&mut reader))
     }
 }

@@ -189,7 +189,7 @@ impl<'r> YamlParser for YamlByteParser<'r> {
 }
 
 impl<'r> YamlByteParser<'r> {
-    pub fn init(bytes: &'r [u8]) -> Box<YamlByteParser<'r>> {
+    pub fn init(bytes: &'r [u8], encoding: ffi::YamlEncoding) -> Box<YamlByteParser<'r>> {
         let mut parser = box YamlByteParser {
             base_parser: YamlBaseParser::new()
         };
@@ -198,6 +198,8 @@ impl<'r> YamlByteParser<'r> {
             if !parser.base_parser.initialize() {
                 fail!("failed to initialize yaml_parser_t");
             }
+
+            ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
             parser.base_parser.set_input_string(bytes.as_ptr(), bytes.len());
         }
 
@@ -217,7 +219,7 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 }
 
 impl<'r> YamlIoParser<'r> {
-    pub fn init<'r>(reader: &'r mut Reader) -> Box<YamlIoParser<'r>> {
+    pub fn init<'r>(reader: &'r mut Reader, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'r>> {
         let mut parser = box YamlIoParser {
             base_parser: YamlBaseParser::new(),
             reader: reader
@@ -227,6 +229,8 @@ impl<'r> YamlIoParser<'r> {
             if !parser.base_parser.initialize() {
                 fail!("failed to initialize yaml_parser_t");
             }
+
+            ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
 
             ffi::yaml_parser_set_input(&mut parser.base_parser.parser_mem, handle_reader_cb, mem::transmute(&mut *parser));
         }
@@ -248,7 +252,7 @@ mod test {
     #[test]
     fn test_byte_parser() {
         let data = "[1, 2, 3]";
-        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
@@ -270,7 +274,7 @@ mod test {
     fn test_io_parser() {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
-        let parser = parser::YamlIoParser::init(&mut reader);
+        let parser = parser::YamlIoParser::init(&mut reader, ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
@@ -291,7 +295,7 @@ mod test {
     #[test]
     fn test_byte_parser_mapping() {
         let data = "{\"a\": 1, \"b\":2}";
-        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
             YamlDocumentStartEvent(None, ~[], true),
@@ -313,7 +317,7 @@ mod test {
     #[test]
     fn test_parser_error() {
         let data = "\"ab";
-        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let mut stream = parser.parse();
 
         let stream_start = stream.next();
@@ -329,7 +333,7 @@ mod test {
     #[test]
     fn test_document() {
         let data = "[1, 2, 3]";
-        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
 
         match docs_res {
@@ -352,7 +356,7 @@ mod test {
     #[test]
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
-        let parser = parser::YamlByteParser::init(data.as_bytes());
+        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
 
         match docs_res {

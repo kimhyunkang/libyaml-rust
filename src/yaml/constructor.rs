@@ -180,11 +180,12 @@ mod test {
     use parser::{YamlParser, YamlByteParser};
     use constructor::*;
     use std::f64;
+    use ffi::YamlUtf8Encoding;
 
     #[test]
     fn test_standard_constructor() {
         let data = "[1, 2, 3]";
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -198,7 +199,7 @@ mod test {
     #[test]
     fn test_integer_parser() {
         let data = "[0o10, 0x21, -30]";
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -212,7 +213,7 @@ mod test {
     #[test]
     fn test_float_parser() {
         let data = "[0.3, -.4, 1e+2, -1.2e-3]";
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -240,7 +241,7 @@ mod test {
     #[test]
     fn test_inf_parser() {
         let data = "[.inf, -.INF]";
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -254,7 +255,7 @@ mod test {
     #[test]
     fn test_misc_parser() {
         let data = "[yes, False, ~]";
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -268,7 +269,7 @@ mod test {
     #[test]
     fn test_double_quoted_parser() {
         let data = r#""hello, \"world\"""#;
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {
@@ -282,7 +283,7 @@ mod test {
     #[test]
     fn test_single_quoted_parser() {
         let data = r#"'here''s to "quotes"'"#;
-        let parser = YamlByteParser::init(data.as_bytes());
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
 
         match parser.load().next() {
             Some(Ok(doc)) => {

@@ -7,12 +7,16 @@ use yaml::constructor::{YamlStandardData, YamlMapping, YamlSequence, YamlString,
 use std::os;
 use std::io::{File, BufferedReader};
 
-fn match_file(filename: &str, expected: YamlStandardData) {
+fn match_utf8(filename: &str, expected: YamlStandardData) {
+    match_file(yaml::ffi::YamlUtf8Encoding, filename, expected);
+}
+
+fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
     let this_path = os::args().as_slice()[0].clone();
     let file_path = Path::new(this_path).join("../../test/source").join(filename);
     println!("{}", file_path.display())
     let mut reader = BufferedReader::new(File::open(&file_path));
-    match yaml::parse_io(&mut reader) {
+    match yaml::parse_io(&mut reader, encoding) {
         Ok(docs) => if docs.len() == 1 {
             assert_eq!(docs.as_slice().head().unwrap(), &expected)
         } else {
@@ -60,12 +64,12 @@ macro_rules! y_cmp_map(
 
 #[test]
 fn sequence_of_scalars() {
-    match_file("ball_players.yml", yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa"), ystr!("Ken Griffey")]);
+    match_utf8("ball_players.yml", yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa"), ystr!("Ken Griffey")]);
 }
 
 #[test]
 fn scalar_mappings() {
-    match_file("player_stat.yml", ymap!{
+    match_utf8("player_stat.yml", ymap!{
                                     "hr": yint!(65),
                                     "avg": yfloat!(0.278),
                                     "rbi": yint!(147)
@@ -74,7 +78,7 @@ fn scalar_mappings() {
 
 #[test]
 fn maps_of_sequences() {
-    match_file("ball_clubs.yml", ymap!{
+    match_utf8("ball_clubs.yml", ymap!{
                                     "american": yseq![ystr!("Boston Red Sox"), ystr!("Detroit Tigers"), ystr!("New York Yankees")],
                                     "national": yseq![ystr!("New York Mets"), ystr!("Chicago Cubs"), ystr!("Atlanta Braves")]
                                 })
@@ -82,7 +86,7 @@ fn maps_of_sequences() {
 
 #[test]
 fn sequence_of_maps() {
-    match_file("multiple_player_stat.yml",
+    match_utf8("multiple_player_stat.yml",
     yseq![
         ymap!{
             "name": ystr!("Mark McGwire"),
@@ -97,7 +101,7 @@ fn sequence_of_maps() {
 
 #[test]
 fn sequence_of_sequences() {
-    match_file("csv.yml",
+    match_utf8("csv.yml",
     yseq![
         yseq![ystr!("name"), ystr!("hr")],
         yseq![ystr!("Mark McGwire"), yint!(65)],
@@ -107,7 +111,7 @@ fn sequence_of_sequences() {
 
 #[test]
 fn mapping_of_mappings() {
-    match_file("map_map.yml",
+    match_utf8("map_map.yml",
     ymap!{
         "Mark McGwire": ymap!{ "hr": yint!(65) },
         "Sammy Sosa": ymap!{ "hr": yint!(63) }
@@ -116,7 +120,7 @@ fn mapping_of_mappings() {
 
 #[test]
 fn alias() {
-    match_file("alias.yml",
+    match_utf8("alias.yml",
     ymap!{
         "hr": yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa")],
         "rbi": yseq![ystr!("Sammy Sosa"), ystr!("Ken Griffey")]
@@ -125,7 +129,7 @@ fn alias() {
 
 #[test]
 fn complex_keys() {
-    match_file("complex_key.yml",
+    match_utf8("complex_key.yml",
     y_cmp_map!{
         yseq![ystr!("Detroit Tigers"), ystr!("Chicago Cubs")]: yseq![ystr!("2001-07-23")],
         yseq![ystr!("New York Yankees"), ystr!("Atlanta Braves")]: yseq![ystr!("2001-07-02"), ystr!("2001-08-12"), ystr!("2001-08-14")]
@@ -134,17 +138,17 @@ fn complex_keys() {
 
 #[test]
 fn block_literal() {
-    match_file("block_literal.yml", ystr!("\\//||\\/||\n// ||  ||__\n"))
+    match_utf8("block_literal.yml", ystr!("\\//||\\/||\n// ||  ||__\n"))
 }
 
 #[test]
 fn plain_scalar() {
-    match_file("plain_scalar.yml", ystr!("Mark McGwire's year was crippled by a knee injury."))
+    match_utf8("plain_scalar.yml", ystr!("Mark McGwire's year was crippled by a knee injury."))
 }
 
 #[test]
 fn quoted_scalar() {
-    match_file("quoted_scalar.yml",
+    match_utf8("quoted_scalar.yml",
     ymap!{
         "unicode": ystr!("Sosa did fine.\u263A"),
         "control": ystr!("\x081998\t1999\t2000\n"),
@@ -157,9 +161,23 @@ fn quoted_scalar() {
 
 #[test]
 fn multi_line_scalar() {
-    match_file("multi_line_scalar.yml",
+    match_utf8("multi_line_scalar.yml",
     ymap!{
         "plain": ystr!("This unquoted scalar spans many lines."),
         "quoted": ystr!("So does this quoted scalar.\n")
     })
+}
+
+#[test]
+fn utf16le() {
+    match_file(yaml::ffi::YamlUtf16LeEncoding, "utf16le.yml",
+               yseq![ystr!("Hello"), ystr!("世界")]
+    )
+}
+
+#[test]
+fn utf16be() {
+    match_file(yaml::ffi::YamlUtf16BeEncoding, "utf16be.yml",
+               yseq![ystr!("Hello"), ystr!("世界")]
+    )
 }
