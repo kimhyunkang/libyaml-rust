@@ -27,7 +27,7 @@ extern crate yaml;
 
 use yaml::constructor::*;
 
-yaml::parse_bytes("[1, 2, 3]".as_bytes()); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
+yaml::parse_bytes_utf8("[1, 2, 3]".as_bytes()); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
 ~~~~
 
 Parse from Reader
@@ -41,7 +41,7 @@ use yaml::constructor::*;
 let data = "[1, 2, 3]";
 let mut reader = BufReader::new(data.as_bytes());
 
-yaml::parse_io(&mut reader); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
+yaml::parse_io_utf8(&mut reader); // => Ok(vec![YamlSequence(~[YamlInteger(1), YamlInteger(2), YamlInteger(3)])])
 ~~~~
 
 Todo
@@ -49,9 +49,9 @@ Todo
 
 In the order of what I want to do...
 
-- [ ] Emitter functions
-- [ ] Document iterator
-- [ ] UTF-16 support
+- [x] Emitter functions
+- [x] Document iterator
+- [x] UTF-16 support
 - Complete YAML 1.1 specs
   - [ ] Tag support
   - [ ] [Timestamp type](http://yaml.org/type/timestamp.html)
