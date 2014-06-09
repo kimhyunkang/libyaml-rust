@@ -104,11 +104,23 @@ fn parse_escape_sequence(rep: String, expected_len: uint) -> Option<char> {
     }
 }
 
+fn parse_int(sign: &str, data: &str, radix: uint) -> int {
+    let sign_flag = if sign == "-" {
+            -1
+        } else {
+            1
+        };
+
+    let filtered:String = data.chars().filter(|&c| c != '_').collect();
+    int::parse_bytes(filtered.as_bytes(), radix).unwrap() * sign_flag
+}
+
 impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, String> {
-        let dec_int = regex!(r"^[-+]?[0-9]+$");
-        let oct_int = regex!(r"^0o[0-7]+$");
-        let hex_int = regex!(r"^0x[0-9a-fA-F]+$");
+        let dec_int = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
+        let oct_int = regex!(r"^([-+]?)0o?([0-7_]+)$");
+        let hex_int = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
+        let bin_int = regex!(r"^([-+]?)0b([0-1_]+)$");
         let float_pattern = regex!(r"^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$");
         let pos_inf = regex!(r"^[+]?(\.inf|\.Inf|\.INF)$");
         let neg_inf = regex!(r"^-(\.inf|\.Inf|\.INF)$");
@@ -122,14 +134,21 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
 
         match scalar.style() {
             ffi::YamlPlainScalarStyle => {
+                match bin_int.captures(value.as_slice()) {
+                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 2))),
+                    None => ()
+                };
+                match oct_int.captures(value.as_slice()) {
+                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 8))),
+                    None => ()
+                };
+                match hex_int.captures(value.as_slice()) {
+                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 16))),
+                    None => ()
+                };
+
                 if dec_int.is_match(value.as_slice()) {
-                    Ok(YamlInteger(from_str(value.as_slice()).unwrap()))
-                } else if oct_int.is_match(value.as_slice()) {
-                    let num_part = value.as_slice().slice_from(2);
-                    Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 8).unwrap()))
-                } else if hex_int.is_match(value.as_slice()) {
-                    let num_part = value.as_slice().slice_from(2);
-                    Ok(YamlInteger(int::parse_bytes(num_part.as_bytes(), 16).unwrap()))
+                    Ok(YamlInteger(parse_int("", value.as_slice(), 10)))
                 } else if float_pattern.is_match(value.as_slice()) {
                     Ok(YamlFloat(from_str(value.as_slice()).unwrap()))
                 } else if pos_inf.is_match(value.as_slice()) {
@@ -289,6 +308,34 @@ mod test {
             Some(Ok(doc)) => {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_string())), ctor.construct(doc.root().unwrap()))
+            },
+            err => fail!("document parse failure: {:?}", err)
+        }
+    }
+
+    #[test]
+    fn test_underlined_integer() {
+        let data = "[1_000, -2_000_000]";
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
+
+        match parser.load().next() {
+            Some(Ok(doc)) => {
+                let ctor = YamlStandardConstructor::new();
+                assert_eq!(Ok(YamlSequence(vec![YamlInteger(1000), YamlInteger(-2000000)])), ctor.construct(doc.root().unwrap()))
+            },
+            err => fail!("document parse failure: {:?}", err)
+        }
+    }
+
+    #[test]
+    fn test_negative_radix() {
+        let data = "[-0x30, -0700, -0b110]";
+        let parser = YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
+
+        match parser.load().next() {
+            Some(Ok(doc)) => {
+                let ctor = YamlStandardConstructor::new();
+                assert_eq!(Ok(YamlSequence(vec![YamlInteger(-48), YamlInteger(-448), YamlInteger(-6)])), ctor.construct(doc.root().unwrap()))
             },
             err => fail!("document parse failure: {:?}", err)
         }
