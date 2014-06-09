@@ -51,14 +51,24 @@ impl<'r> YamlEmitter<'r> {
         emitter
     }
 
-    pub fn get_error(&self) -> (YamlErrorType, String) {
+    fn get_error(&self) -> (YamlErrorType, String) {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
             (emitter_mem.error, CString::new(emitter_mem.problem, false).as_str().unwrap().to_string())
         }
     }
 
-    pub fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), (YamlErrorType, String)> {
+    pub fn emit_stream(&mut self,
+                    encoding: ffi::YamlEncoding,
+                    f: |&mut YamlEmitter| -> Result<(), (YamlErrorType, String)>)
+        -> Result<(), (YamlErrorType, String)>
+    {
+        try!(self.emit_stream_start_event(encoding));
+        try!(f(self));
+        self.emit_stream_end_event()
+    }
+
+    fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_stream_start_event_initialize(&mut event, encoding) == 0 {
@@ -73,7 +83,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_stream_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
+    fn emit_stream_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_stream_end_event_initialize(&mut event) == 0 {
@@ -88,7 +98,19 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_document_start_event(&mut self,
+    pub fn emit_document(&mut self,
+            version_directive: Option<YamlVersionDirective>,
+            tag_directives: &[YamlTagDirective],
+            implicit: bool,
+            f: |&mut YamlEmitter| -> Result<(), (YamlErrorType, String)>)
+        -> Result<(), (YamlErrorType, String)>
+    {
+        try!(self.emit_document_start_event(version_directive, tag_directives, implicit));
+        try!(f(self));
+        self.emit_document_end_event(implicit)
+    }
+
+    fn emit_document_start_event(&mut self,
             version_directive: Option<YamlVersionDirective>,
             tag_directives: &[YamlTagDirective],
             implicit: bool)
@@ -131,7 +153,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_document_end_event(&mut self, implicit: bool) -> Result<(), (YamlErrorType, String)> {
+    fn emit_document_end_event(&mut self, implicit: bool) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         let c_implicit = if implicit { 1 } else { 0 };
         unsafe {
@@ -202,7 +224,17 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_sequence_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+    pub fn emit_sequence(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+            style: ffi::YamlSequenceStyle,
+            f: |&mut YamlEmitter| -> Result<(), (YamlErrorType, String)>)
+        -> Result<(), (YamlErrorType, String)>
+    {
+        try!(self.emit_sequence_start_event(anchor, tag, implicit, style));
+        try!(f(self));
+        self.emit_sequence_end_event()
+    }
+
+    fn emit_sequence_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, String)>
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
@@ -234,7 +266,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_sequence_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
+    fn emit_sequence_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_sequence_end_event_initialize(&mut event) == 0 {
@@ -249,7 +281,17 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_mapping_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+    pub fn emit_mapping(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+            style: ffi::YamlSequenceStyle,
+            f: |&mut YamlEmitter| -> Result<(), (YamlErrorType, String)>)
+        -> Result<(), (YamlErrorType, String)>
+    {
+        try!(self.emit_mapping_start_event(anchor, tag, implicit, style));
+        try!(f(self));
+        self.emit_mapping_end_event()
+    }
+
+    fn emit_mapping_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), (YamlErrorType, String)>
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
@@ -281,7 +323,7 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_mapping_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
+    fn emit_mapping_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_mapping_end_event_initialize(&mut event) == 0 {
@@ -330,17 +372,17 @@ mod test {
         let mut writer = MemWriter::new();
         {
             let mut emitter = YamlEmitter::init(&mut writer);
-            emitter.emit_stream_start_event(YamlUtf8Encoding);
-            emitter.emit_document_start_event(None, [], true);
-            emitter.emit_sequence_start_event(None, None, true, YamlFlowSequenceStyle);
-            emitter.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle);
-            emitter.emit_scalar_event(None, None, "2", true, false, YamlPlainScalarStyle);
-            emitter.emit_sequence_end_event();
-            emitter.emit_document_end_event(false);
-            emitter.emit_stream_end_event();
+            emitter.emit_stream(YamlUtf8Encoding, |e| {
+                e.emit_document(None, [], true, |e| {
+                    e.emit_sequence(None, None, true, YamlFlowSequenceStyle, |e| {
+                        try!(e.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle));
+                        e.emit_scalar_event(None, None, "2", true, false, YamlPlainScalarStyle)
+                    })
+                })
+            });
             emitter.flush();
         }
-        assert_eq!(writer.get_ref(), "[1, 2]\n...\n".as_bytes());
+        assert_eq!(writer.get_ref(), "[1, 2]\n".as_bytes());
     }
 
     #[test]
@@ -349,18 +391,18 @@ mod test {
         let mut writer = MemWriter::new();
         {
             let mut emitter = YamlEmitter::init(&mut writer);
-            emitter.emit_stream_start_event(YamlUtf8Encoding);
-            emitter.emit_document_start_event(None, [], true);
-            emitter.emit_mapping_start_event(None, None, true, YamlFlowSequenceStyle);
-            emitter.emit_scalar_event(None, None, "a", true, false, YamlPlainScalarStyle);
-            emitter.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle);
-            emitter.emit_scalar_event(None, None, "b", true, false, YamlPlainScalarStyle);
-            emitter.emit_scalar_event(None, None, "2", true, false, YamlPlainScalarStyle);
-            emitter.emit_mapping_end_event();
-            emitter.emit_document_end_event(false);
-            emitter.emit_stream_end_event();
+            emitter.emit_stream(YamlUtf8Encoding, |e| {
+                e.emit_document(None, [], true, |e| {
+                    e.emit_mapping(None, None, true, YamlFlowSequenceStyle, |e| {
+                        try!(e.emit_scalar_event(None, None, "a", true, false, YamlPlainScalarStyle));
+                        try!(e.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle));
+                        try!(e.emit_scalar_event(None, None, "b", true, false, YamlPlainScalarStyle));
+                        e.emit_scalar_event(None, None, "2", true, false, YamlPlainScalarStyle)
+                    })
+                })
+            });
             emitter.flush();
         }
-        assert_eq!(writer.get_ref(), "{a: 1, b: 2}\n...\n".as_bytes());
+        assert_eq!(writer.get_ref(), "{a: 1, b: 2}\n".as_bytes());
     }
 }
