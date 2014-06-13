@@ -40,7 +40,7 @@ pub enum YamlEvent {
     YamlNoEvent,
     YamlStreamStartEvent(YamlEncoding),
     YamlStreamEndEvent,
-    YamlDocumentStartEvent(Option<YamlVersionDirective>, ~[YamlTagDirective], bool),
+    YamlDocumentStartEvent(Option<YamlVersionDirective>, Vec<YamlTagDirective>, bool),
     YamlDocumentEndEvent(bool),
     YamlAliasEvent(String),
     YamlScalarEvent(YamlScalarParam),
@@ -78,7 +78,7 @@ impl YamlEvent {
                 }
                 let implicit = evt_data.implicit != 0;
 
-                YamlDocumentStartEvent(vsn_dir, tag_dirs.as_slice().to_owned(), implicit)
+                YamlDocumentStartEvent(vsn_dir, tag_dirs, implicit)
             },
             ffi::YAML_DOCUMENT_END_EVENT => {
                 let evt_data: &ffi::yaml_document_end_event_t = mem::transmute(&event.data);

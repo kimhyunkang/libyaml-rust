@@ -255,7 +255,7 @@ mod test {
         let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
-            YamlDocumentStartEvent(None, ~[], true),
+            YamlDocumentStartEvent(None, vec![], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
@@ -277,7 +277,7 @@ mod test {
         let parser = parser::YamlIoParser::init(&mut reader, ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
-            YamlDocumentStartEvent(None, ~[], true),
+            YamlDocumentStartEvent(None, vec![], true),
             YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
@@ -298,7 +298,7 @@ mod test {
         let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(ffi::YamlUtf8Encoding),
-            YamlDocumentStartEvent(None, ~[], true),
+            YamlDocumentStartEvent(None, vec![], true),
             YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "a".to_string(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
             YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
