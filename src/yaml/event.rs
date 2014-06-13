@@ -11,7 +11,7 @@ pub struct YamlVersionDirective {
     pub minor: int,
 }
 
-#[deriving(Show, Clone, PartialEq)]
+#[deriving(Show, PartialEq)]
 pub struct YamlTagDirective {
     pub handle: String,
     pub prefix: String,
