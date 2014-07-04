@@ -46,7 +46,7 @@ impl YamlDocument {
             Some(vsn) => {
                 vsn_dir.major = vsn.major as libc::c_int;
                 vsn_dir.minor = vsn.minor as libc::c_int;
-                &vsn_dir as *ffi::yaml_version_directive_t
+                &vsn_dir as *const ffi::yaml_version_directive_t
             }
         };
 
@@ -74,7 +74,7 @@ impl YamlDocument {
         document
     }
 
-    unsafe fn load<'r>(&'r self, node_ptr: *ffi::yaml_node_t) -> YamlNode<'r> {
+    unsafe fn load<'r>(&'r self, node_ptr: *const ffi::yaml_node_t) -> YamlNode<'r> {
         if node_ptr == ptr::null() {
             fail!("empty node")
         }
@@ -197,16 +197,16 @@ impl<'r> YamlSequenceData<'r> {
     pub fn values(&self) -> YamlSequenceIter<'r> {
         YamlSequenceIter {
             doc: self.doc,
-            top: self.data.items.top as *libc::c_int,
-            ptr: self.data.items.start as *libc::c_int
+            top: self.data.items.top as *const libc::c_int,
+            ptr: self.data.items.start as *const libc::c_int
         }
     }
 }
 
 pub struct YamlSequenceIter<'r> {
     doc: &'r YamlDocument,
-    top: *libc::c_int,
-    ptr: *libc::c_int
+    top: *const libc::c_int,
+    ptr: *const libc::c_int
 }
 
 impl<'r> Iterator<YamlNode<'r>> for YamlSequenceIter<'r> {
@@ -241,16 +241,16 @@ impl<'r> YamlMappingData<'r> {
     pub fn pairs(&self) -> YamlMappingIter<'r> {
         YamlMappingIter {
             doc: self.doc,
-            top: self.data.items.top as *ffi::yaml_node_pair_t,
-            ptr: self.data.items.start as *ffi::yaml_node_pair_t
+            top: self.data.items.top as *const ffi::yaml_node_pair_t,
+            ptr: self.data.items.start as *const ffi::yaml_node_pair_t
         }
     }
 }
 
 pub struct YamlMappingIter<'r> {
     doc: &'r YamlDocument,
-    top: *ffi::yaml_node_pair_t,
-    ptr: *ffi::yaml_node_pair_t
+    top: *const ffi::yaml_node_pair_t,
+    ptr: *const ffi::yaml_node_pair_t
 }
 
 impl<'r> Iterator<(YamlNode<'r>, YamlNode<'r>)> for YamlMappingIter<'r> {

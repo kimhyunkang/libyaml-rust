@@ -12,7 +12,7 @@ pub type yaml_char_t = c_uchar;
 pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u8, size: size_t, size_read: *mut size_t) -> c_int;
 
 #[allow(non_camel_case_types)]
-pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *u8, size: size_t) -> c_int;
+pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *const u8, size: size_t) -> c_int;
 
 #[repr(C)]
 #[deriving(Show, PartialEq)]
@@ -126,10 +126,10 @@ impl yaml_mark_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_buffer_t {
-    pub start: *yaml_char_t,
-    pub end: *yaml_char_t,
-    pub pointer: *yaml_char_t,
-    pub last: *yaml_char_t
+    pub start: *const yaml_char_t,
+    pub end: *const yaml_char_t,
+    pub pointer: *const yaml_char_t,
+    pub last: *const yaml_char_t
 }
 
 impl yaml_buffer_t {
@@ -145,10 +145,10 @@ impl yaml_buffer_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_queue_t {
-    pub start: *c_void,
-    pub end: *c_void,
-    pub head: *c_void,
-    pub tail: *c_void
+    pub start: *const c_void,
+    pub end: *const c_void,
+    pub head: *const c_void,
+    pub tail: *const c_void
 }
 
 impl yaml_queue_t {
@@ -164,9 +164,9 @@ impl yaml_queue_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_stack_t {
-    pub start: *c_void,
-    pub end: *c_void,
-    pub top: *c_void
+    pub start: *const c_void,
+    pub end: *const c_void,
+    pub top: *const c_void
 }
 
 impl yaml_stack_t {
@@ -192,7 +192,7 @@ pub static YAML_MAPPING_NODE:yaml_node_type_t = 3;
 #[allow(non_camel_case_types)]
 pub struct yaml_node_t {
     pub node_type: yaml_node_type_t,
-    pub tag: *yaml_char_t,
+    pub tag: *const yaml_char_t,
     pub data: yaml_node_data_t,
     pub start_mark: yaml_mark_t,
     pub end_mark: yaml_mark_t,
@@ -212,7 +212,7 @@ impl yaml_node_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_node_t {
-    pub value: *yaml_char_t,
+    pub value: *const yaml_char_t,
     pub length: size_t,
     pub style: YamlScalarStyle
 }
@@ -233,7 +233,7 @@ pub struct yaml_node_pair_t {
 pub struct yaml_document_t {
     pub nodes: yaml_stack_t,
 
-    pub version_directive: *yaml_version_directive_t,
+    pub version_directive: *const yaml_version_directive_t,
     pub tag_directives: yaml_tag_directive_list_t,
 
     pub start_implicit: c_int,
@@ -260,15 +260,15 @@ impl yaml_document_t {
 #[allow(non_camel_case_types)]
 pub struct yaml_parser_t {
     pub error: YamlErrorType,
-    pub problem: *c_char,
+    pub problem: *const c_char,
     pub problem_offset: size_t,
     pub problem_value: c_int,
     pub problem_mark: yaml_mark_t,
-    pub context: *c_char,
+    pub context: *const c_char,
     pub context_mark: yaml_mark_t,
 
     pub read_handler: yaml_read_handler_t,
-    pub read_handler_data: *c_void,
+    pub read_handler_data: *const c_void,
 
     pub input: yaml_parser_input_t,
     pub eof: c_int,
@@ -297,7 +297,7 @@ pub struct yaml_parser_t {
     pub tag_directives: yaml_stack_t,
     pub aliases: yaml_stack_t,
 
-    pub document: *yaml_document_t,
+    pub document: *const yaml_document_t,
 }
 
 impl yaml_parser_t {
@@ -361,10 +361,10 @@ pub enum yaml_break_t {
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_t {
     pub error: YamlErrorType,
-    pub problem: *c_char,
+    pub problem: *const c_char,
 
     pub write_handler: yaml_write_handler_t,
-    pub write_handler_data: *c_void,
+    pub write_handler_data: *const c_void,
 
     pub output: yaml_emitter_output_t,
     pub buffer: yaml_buffer_t,
@@ -405,11 +405,11 @@ pub struct yaml_emitter_t {
     pub opened: c_int,
     pub closed: c_int,
 
-    pub anchors: *c_void,
+    pub anchors: *const c_void,
 
     pub last_anchor_id: c_int,
 
-    pub document: *yaml_document_t
+    pub document: *const yaml_document_t
 }
 
 impl yaml_emitter_t {
@@ -471,7 +471,7 @@ impl yaml_emitter_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_anchor_data_t {
-    pub anchor: *yaml_char_t,
+    pub anchor: *const yaml_char_t,
     pub anchor_length: size_t,
     pub alias: c_int
 }
@@ -488,9 +488,9 @@ impl yaml_emitter_anchor_data_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_tag_data_t {
-    pub handle: *yaml_char_t,
+    pub handle: *const yaml_char_t,
     pub handle_length: size_t,
-    pub suffix: *yaml_char_t,
+    pub suffix: *const yaml_char_t,
     pub suffix_length: size_t
 }
 
@@ -507,7 +507,7 @@ impl yaml_emitter_tag_data_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_scalar_data_t {
-    pub value: *yaml_char_t,
+    pub value: *const yaml_char_t,
     pub length: size_t,
     pub multiline: c_int,
     pub flow_plain_allowed: c_int,
@@ -547,13 +547,13 @@ pub struct yaml_stream_start_event_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_list_t {
-    pub start: *yaml_tag_directive_t,
-    pub end: *yaml_tag_directive_t,
+    pub start: *const yaml_tag_directive_t,
+    pub end: *const yaml_tag_directive_t,
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_document_start_event_t {
-    pub version_directive: *yaml_version_directive_t,
+    pub version_directive: *const yaml_version_directive_t,
     pub tag_directives: yaml_tag_directive_list_t,
     pub implicit: c_int
 }
@@ -565,30 +565,30 @@ pub struct yaml_document_end_event_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_alias_event_t {
-    pub anchor: *yaml_char_t
+    pub anchor: *const yaml_char_t
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_start_event_t {
-    pub anchor: *yaml_char_t,
-    pub tag: *yaml_char_t,
+    pub anchor: *const yaml_char_t,
+    pub tag: *const yaml_char_t,
     pub implicit: c_int,
     pub style: YamlSequenceStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_mapping_start_event_t {
-    pub anchor: *yaml_char_t,
-    pub tag: *yaml_char_t,
+    pub anchor: *const yaml_char_t,
+    pub tag: *const yaml_char_t,
     pub implicit: c_int,
     pub style: YamlSequenceStyle
 }
 
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_event_t {
-    pub anchor: *yaml_char_t,
-    pub tag: *yaml_char_t,
-    pub value: *yaml_char_t,
+    pub anchor: *const yaml_char_t,
+    pub tag: *const yaml_char_t,
+    pub value: *const yaml_char_t,
     pub length: size_t,
     pub plain_implicit: c_int,
     pub quoted_implicit: c_int,
@@ -618,62 +618,62 @@ pub struct yaml_version_directive_t {
 
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_t {
-    pub handle: *c_char,
-    pub prefix: *c_char
+    pub handle: *const c_char,
+    pub prefix: *const c_char
 }
 
 #[link(name = "yaml")]
 extern {
-    pub fn yaml_get_version_string() -> *c_char;
+    pub fn yaml_get_version_string() -> *const c_char;
     pub fn yaml_get_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int) -> c_void;
     pub fn yaml_event_delete(event: *mut yaml_event_t) -> c_void;
     pub fn yaml_document_initialize(document: *mut yaml_document_t,
-        version_directive: *yaml_version_directive_t,
-        tag_directives_start: *yaml_tag_directive_t,
-        tag_directives_end: *yaml_tag_directive_t,
+        version_directive: *const yaml_version_directive_t,
+        tag_directives_start: *const yaml_tag_directive_t,
+        tag_directives_end: *const yaml_tag_directive_t,
         start_implicit: c_int, end_implicit: c_int) -> c_int;
-    pub fn yaml_document_get_node(document: *yaml_document_t, index: c_int) -> *yaml_node_t;
-    pub fn yaml_document_get_root_node(document: *yaml_document_t) -> *yaml_node_t;
+    pub fn yaml_document_get_node(document: *const yaml_document_t, index: c_int) -> *const yaml_node_t;
+    pub fn yaml_document_get_root_node(document: *const yaml_document_t) -> *const yaml_node_t;
     pub fn yaml_document_delete(document: *mut yaml_document_t) -> c_void;
     pub fn yaml_document_add_scalar(document: *mut yaml_document_t,
-        tag: *yaml_char_t, value: *yaml_char_t, length: c_int,
+        tag: *const yaml_char_t, value: *const yaml_char_t, length: c_int,
         style: YamlScalarStyle) -> c_int;
     pub fn yaml_document_add_sequence(document: *mut yaml_document_t,
-        tag: *yaml_char_t, style: YamlSequenceStyle) -> c_int;
+        tag: *const yaml_char_t, style: YamlSequenceStyle) -> c_int;
     pub fn yaml_document_add_mapping(document: *mut yaml_document_t,
-        tag: *yaml_char_t, style: YamlSequenceStyle) -> c_int;
+        tag: *const yaml_char_t, style: YamlSequenceStyle) -> c_int;
     pub fn yaml_parser_initialize(parser: *mut yaml_parser_t) -> c_int;
     pub fn yaml_parser_set_encoding(parser: *mut yaml_parser_t, encoding: YamlEncoding) -> c_void;
     pub fn yaml_parser_delete(parser: *mut yaml_parser_t) -> c_void;
-    pub fn yaml_parser_set_input_string(parser: *mut yaml_parser_t, input: *yaml_char_t, size: size_t) -> c_void;
-    pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: yaml_read_handler_t, data: *c_void) -> c_void;
+    pub fn yaml_parser_set_input_string(parser: *mut yaml_parser_t, input: *const yaml_char_t, size: size_t) -> c_void;
+    pub fn yaml_parser_set_input(parser: *mut yaml_parser_t, handler: yaml_read_handler_t, data: *const c_void) -> c_void;
     pub fn yaml_parser_parse(parser: *mut yaml_parser_t, event: *mut yaml_event_t) -> c_int;
     pub fn yaml_parser_load(parser: *mut yaml_parser_t, document: *mut yaml_document_t) -> c_int;
     pub fn yaml_emitter_initialize(emitter: *mut yaml_emitter_t) -> c_int;
     pub fn yaml_emitter_emit(emitter: *mut yaml_emitter_t, event: *mut yaml_event_t) -> c_int;
     pub fn yaml_emitter_delete(emitter: *mut yaml_emitter_t) -> c_void;
-    pub fn yaml_emitter_set_output(emitter: *mut yaml_emitter_t, handler: yaml_write_handler_t, data: *c_void) -> c_void;
+    pub fn yaml_emitter_set_output(emitter: *mut yaml_emitter_t, handler: yaml_write_handler_t, data: *const c_void) -> c_void;
     pub fn yaml_emitter_flush(emitter: *mut yaml_emitter_t) -> c_int;
     pub fn yaml_stream_start_event_initialize(event: *mut yaml_event_t, encoding: YamlEncoding) -> c_int;
     pub fn yaml_stream_end_event_initialize(event: *mut yaml_event_t) -> c_int;
     pub fn yaml_document_start_event_initialize(event: *mut yaml_event_t,
-        version_directive: *yaml_version_directive_t,
-        tag_directives_start: *yaml_tag_directive_t,
-        tag_directies_end: *yaml_tag_directive_t,
+        version_directive: *const yaml_version_directive_t,
+        tag_directives_start: *const yaml_tag_directive_t,
+        tag_directies_end: *const yaml_tag_directive_t,
         implicit: c_int) -> c_int;
     pub fn yaml_document_end_event_initialize(event: *mut yaml_event_t, implicit: c_int) -> c_int;
-    pub fn yaml_alias_event_initialize(event: *mut yaml_event_t, anchor: *yaml_char_t) -> c_int;
+    pub fn yaml_alias_event_initialize(event: *mut yaml_event_t, anchor: *const yaml_char_t) -> c_int;
     pub fn yaml_scalar_event_initialize(event: *mut yaml_event_t,
-        anchor: *yaml_char_t, tag: *yaml_char_t,
-        value: *yaml_char_t, length: c_int,
+        anchor: *const yaml_char_t, tag: *const yaml_char_t,
+        value: *const yaml_char_t, length: c_int,
         plain_implicit: c_int, quoted_implicit: c_int,
         style: YamlScalarStyle) -> c_int;
     pub fn yaml_sequence_start_event_initialize(event: *mut yaml_event_t,
-        anchor: *yaml_char_t, tag: *yaml_char_t, implicit: c_int,
+        anchor: *const yaml_char_t, tag: *const yaml_char_t, implicit: c_int,
         style: YamlSequenceStyle) -> c_int;
     pub fn yaml_sequence_end_event_initialize(event: *mut yaml_event_t) -> c_int;
     pub fn yaml_mapping_start_event_initialize(event: *mut yaml_event_t,
-        anchor: *yaml_char_t, tag: *yaml_char_t, implicit: c_int,
+        anchor: *const yaml_char_t, tag: *const yaml_char_t, implicit: c_int,
         style: YamlSequenceStyle) -> c_int;
     pub fn yaml_mapping_end_event_initialize(event: *mut yaml_event_t) -> c_int;
 }

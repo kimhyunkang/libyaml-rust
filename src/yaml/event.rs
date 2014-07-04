@@ -71,8 +71,8 @@ impl YamlEvent {
                 let mut tag_ptr = evt_data.tag_directives.start;
                 while tag_ptr != ptr::null() && tag_ptr != evt_data.tag_directives.end {
                     let tag_ref: &ffi::yaml_tag_directive_t = mem::transmute(tag_ptr);
-                    let handle = codecs::decode_c_str(tag_ref.handle as *ffi::yaml_char_t).unwrap();
-                    let prefix = codecs::decode_c_str(tag_ref.prefix as *ffi::yaml_char_t).unwrap();
+                    let handle = codecs::decode_c_str(tag_ref.handle as *const ffi::yaml_char_t).unwrap();
+                    let prefix = codecs::decode_c_str(tag_ref.prefix as *const ffi::yaml_char_t).unwrap();
                     tag_dirs.push(YamlTagDirective { handle: handle, prefix: prefix });
                     tag_ptr = tag_ptr.offset(1);
                 }

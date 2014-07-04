@@ -150,7 +150,7 @@ impl YamlBaseParser {
         ffi::yaml_parser_initialize(&mut self.parser_mem) != 0
     }
 
-    unsafe fn set_input_string(&mut self, input: *u8, size: uint) {
+    unsafe fn set_input_string(&mut self, input: *const u8, size: uint) {
         ffi::yaml_parser_set_input_string(&mut self.parser_mem, input, size as libc::size_t);
     }
 
@@ -161,10 +161,10 @@ impl YamlBaseParser {
     unsafe fn get_error(&self) -> YamlError {
         YamlError {
             kind: self.parser_mem.error,
-            problem: codecs::decode_c_str(self.parser_mem.problem as *ffi::yaml_char_t),
+            problem: codecs::decode_c_str(self.parser_mem.problem as *const ffi::yaml_char_t),
             byte_offset: self.parser_mem.problem_offset as uint,
             problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),
-            context: codecs::decode_c_str(self.parser_mem.context as *ffi::yaml_char_t),
+            context: codecs::decode_c_str(self.parser_mem.context as *const ffi::yaml_char_t),
             context_mark: YamlMark::conv(&self.parser_mem.context_mark),
         }
     }

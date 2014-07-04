@@ -7,17 +7,17 @@ use std::ptr;
 use std::c_str::CString;
 use std::c_vec::CVec;
 
-pub fn decode_c_str(c_str: *ffi::yaml_char_t) -> Option<String> {
+pub fn decode_c_str(c_str: *const ffi::yaml_char_t) -> Option<String> {
     if c_str == ptr::null() {
         None
     } else {
         unsafe {
-            CString::new(c_str as *i8, false).as_str().map(|s| { s.to_string() })
+            CString::new(c_str as *const i8, false).as_str().map(|s| { s.to_string() })
         }
     }
 }
 
-pub fn decode_buf(buf: *ffi::yaml_char_t, length: libc::size_t) -> Option<String> {
+pub fn decode_buf(buf: *const ffi::yaml_char_t, length: libc::size_t) -> Option<String> {
     if buf == ptr::null() {
         None
     } else {

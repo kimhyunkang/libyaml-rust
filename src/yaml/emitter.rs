@@ -122,7 +122,7 @@ impl<'r> YamlEmitter<'r> {
             Some(directive) => {
                 vsn_dir.major = directive.major as libc::c_int;
                 vsn_dir.minor = directive.minor as libc::c_int;
-                &vsn_dir as *ffi::yaml_version_directive_t
+                &vsn_dir as *const ffi::yaml_version_directive_t
             },
             None => ptr::null()
         };
@@ -175,7 +175,7 @@ impl<'r> YamlEmitter<'r> {
 
         unsafe {
             c_anchor.with_ref(|ptr| {
-                if ffi::yaml_alias_event_initialize(&mut event, ptr as *ffi::yaml_char_t) != 0 {
+                if ffi::yaml_alias_event_initialize(&mut event, ptr as *const ffi::yaml_char_t) != 0 {
                     fail!("yaml_stream_end_event_initialize failed!")
                 }
             });
@@ -208,7 +208,7 @@ impl<'r> YamlEmitter<'r> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_scalar_event_initialize(&mut event,
-                    anchor_ptr as *ffi::yaml_char_t, tag_ptr as *ffi::yaml_char_t,
+                    anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     value.as_ptr(), value.len() as libc::c_int,
                     c_plain_implicit, c_quoted_implicit,
                     style) == 0
@@ -252,7 +252,7 @@ impl<'r> YamlEmitter<'r> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_sequence_start_event_initialize(&mut event,
-                    anchor_ptr as *ffi::yaml_char_t, tag_ptr as *ffi::yaml_char_t,
+                    anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
             {
                 fail!("yaml_sequence_start_event_initialize failed!");
@@ -309,7 +309,7 @@ impl<'r> YamlEmitter<'r> {
         let mut event = ffi::yaml_event_t::new();
         unsafe {
             if ffi::yaml_mapping_start_event_initialize(&mut event,
-                    anchor_ptr as *ffi::yaml_char_t, tag_ptr as *ffi::yaml_char_t,
+                    anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
             {
                 fail!("yaml_mapping_start_event_initialize failed!");
@@ -349,7 +349,7 @@ impl<'r> YamlEmitter<'r> {
     }
 }
 
-extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *u8, size: libc::size_t) -> libc::c_int {
+extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc::size_t) -> libc::c_int {
     unsafe {
         let buf = CVec::new(buffer as *mut u8, size as uint);
         let emitter = &mut *data;
