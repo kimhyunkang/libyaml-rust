@@ -133,8 +133,8 @@ impl<'r> YamlEmitter<'r> {
         }).collect();
         let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
-                handle: tuple.ref0().with_ref(|ptr| {ptr}),
-                prefix: tuple.ref1().with_ref(|ptr| {ptr}),
+                handle: tuple.ref0().as_ptr(),
+                prefix: tuple.ref1().as_ptr(),
             }
         }).collect();
         let tag_dir_start = c_tag_dirs.as_ptr();
@@ -178,11 +178,10 @@ impl<'r> YamlEmitter<'r> {
         unsafe {
             let mut event = mem::uninitialized();
 
-            c_anchor.with_ref(|ptr| {
-                if ffi::yaml_alias_event_initialize(&mut event, ptr as *const ffi::yaml_char_t) != 0 {
-                    fail!("yaml_stream_end_event_initialize failed!")
-                }
-            });
+            let ptr = c_anchor.as_ptr();
+            if ffi::yaml_alias_event_initialize(&mut event, ptr as *const ffi::yaml_char_t) != 0 {
+                fail!("yaml_stream_end_event_initialize failed!")
+            }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
                 Ok(())
@@ -198,12 +197,12 @@ impl<'r> YamlEmitter<'r> {
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_tag = tag.map(|s| { s.to_c_str() });
         let tag_ptr = match c_tag {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_plain_implicit = if plain_implicit { 1 } else { 0 };
@@ -244,12 +243,12 @@ impl<'r> YamlEmitter<'r> {
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_tag = tag.map(|s| { s.to_c_str() });
         let tag_ptr = match c_tag {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_implicit = if implicit { 1 } else { 0 };
@@ -303,12 +302,12 @@ impl<'r> YamlEmitter<'r> {
     {
         let c_anchor = anchor.map(|s| { s.to_c_str() });
         let anchor_ptr = match c_anchor {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_tag = tag.map(|s| { s.to_c_str() });
         let tag_ptr = match c_tag {
-            Some(s) => s.with_ref(|ptr| { ptr }),
+            Some(s) => s.as_ptr(),
             None => ptr::null()
         };
         let c_implicit = if implicit { 1 } else { 0 };
