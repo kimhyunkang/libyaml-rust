@@ -1,7 +1,5 @@
 pub use type_size::*;
 use libc::{c_char, c_uchar, c_int, c_void, size_t};
-use std::ptr;
-use std::mem;
 use parser::YamlIoParser;
 use emitter::YamlEmitter;
 
@@ -118,29 +116,12 @@ pub struct yaml_mark_t {
     pub column: size_t
 }
 
-impl yaml_mark_t {
-    pub fn new() -> yaml_mark_t {
-        yaml_mark_t { index: 0, line: 0, column: 0 }
-    }
-}
-
 #[allow(non_camel_case_types)]
 pub struct yaml_buffer_t {
     pub start: *const yaml_char_t,
     pub end: *const yaml_char_t,
     pub pointer: *const yaml_char_t,
     pub last: *const yaml_char_t
-}
-
-impl yaml_buffer_t {
-    fn new() -> yaml_buffer_t {
-        yaml_buffer_t {
-            start: ptr::null(),
-            end: ptr::null(),
-            pointer: ptr::null(),
-            last: ptr::null(),
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -151,32 +132,11 @@ pub struct yaml_queue_t {
     pub tail: *const c_void
 }
 
-impl yaml_queue_t {
-    fn new() -> yaml_queue_t {
-        yaml_queue_t {
-            start: ptr::null(),
-            end: ptr::null(),
-            head: ptr::null(),
-            tail: ptr::null(),
-        }
-    }
-}
-
 #[allow(non_camel_case_types)]
 pub struct yaml_stack_t {
     pub start: *const c_void,
     pub end: *const c_void,
     pub top: *const c_void
-}
-
-impl yaml_stack_t {
-    fn new() -> yaml_stack_t {
-        yaml_stack_t {
-            start: ptr::null(),
-            end: ptr::null(),
-            top: ptr::null()
-        }
-    }
 }
 
 /** An empty node. */
@@ -196,18 +156,6 @@ pub struct yaml_node_t {
     pub data: yaml_node_data_t,
     pub start_mark: yaml_mark_t,
     pub end_mark: yaml_mark_t,
-}
-
-impl yaml_node_t {
-    pub fn new() -> yaml_node_t {
-        yaml_node_t {
-            node_type: YAML_NO_NODE,
-            tag: ptr::null(),
-            data: new_yaml_node_data_t(),
-            start_mark: yaml_mark_t::new(),
-            end_mark: yaml_mark_t::new()
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -241,20 +189,6 @@ pub struct yaml_document_t {
 
     pub start_mark: yaml_mark_t,
     pub end_mark: yaml_mark_t,
-}
-
-impl yaml_document_t {
-    pub fn new() -> yaml_document_t {
-        yaml_document_t {
-            nodes: yaml_stack_t::new(),
-            version_directive: ptr::null(),
-            tag_directives: yaml_tag_directive_list_t { start: ptr::null(), end: ptr::null() },
-            start_implicit: 0,
-            end_implicit: 0,
-            start_mark: yaml_mark_t::new(),
-            end_mark: yaml_mark_t::new()
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -298,52 +232,6 @@ pub struct yaml_parser_t {
     pub aliases: yaml_stack_t,
 
     pub document: *const yaml_document_t,
-}
-
-impl yaml_parser_t {
-    pub fn new() -> yaml_parser_t {
-        yaml_parser_t {
-            error: YamlNoError,
-            problem: ptr::null(),
-            problem_offset: 0,
-            problem_value: 0,
-            problem_mark: yaml_mark_t::new(),
-            context: ptr::null(),
-            context_mark: yaml_mark_t::new(),
-
-            read_handler: unsafe { mem::transmute(0) },
-            read_handler_data: ptr::null(),
-
-            input: new_yaml_parser_input_t(),
-            eof: 0,
-            buffer: yaml_buffer_t::new(),
-            unread: 0,
-            raw_buffer: yaml_buffer_t::new(),
-            encoding: YamlAnyEncoding,
-            offset: 0,
-            mark: yaml_mark_t::new(),
-
-            stream_start_produced: 0,
-            stream_end_produced: 0,
-            flow_level: 0,
-            tokens: yaml_queue_t::new(),
-            tokens_parsed: 0,
-            token_available: 0,
-
-            indents: yaml_stack_t::new(),
-            indent: 0,
-            simple_key_allowed: 0,
-            simple_keys: yaml_stack_t::new(),
-
-            states: yaml_stack_t::new(),
-            parser_state: 0,
-            marks: yaml_stack_t::new(),
-            tag_directives: yaml_stack_t::new(),
-            aliases: yaml_stack_t::new(),
-
-            document: ptr::null()
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -412,78 +300,11 @@ pub struct yaml_emitter_t {
     pub document: *const yaml_document_t
 }
 
-impl yaml_emitter_t {
-    pub fn new() -> yaml_emitter_t {
-        yaml_emitter_t {
-            error: YamlNoError,
-            problem: ptr::null(),
-
-            write_handler: unsafe { mem::transmute(0) },
-            write_handler_data: ptr::null(),
-
-            output: new_yaml_emitter_output_t(),
-            buffer: yaml_buffer_t::new(),
-            raw_buffer: yaml_buffer_t::new(),
-            encoding: YamlAnyEncoding,
-
-            canonical: 0,
-            best_indent: 0,
-            best_width: 0,
-            unicode: 0,
-            line_break: YAML_ANY_BREAK,
-
-            states: yaml_stack_t::new(),
-            state: 0,
-            events: yaml_queue_t::new(),
-            indents: yaml_stack_t::new(),
-            tag_directives: yaml_stack_t::new(),
-
-            indent: 0,
-
-            flow_level: 0,
-
-            root_context: 0,
-            sequence_context: 0,
-            mapping_context: 0,
-            simple_key_context: 0,
-
-            line: 0,
-            column: 0,
-            whitespace: 0,
-            indention: 0,
-            open_ended: 0,
-
-            anchor_data: yaml_emitter_anchor_data_t::new(),
-            tag_data: yaml_emitter_tag_data_t::new(),
-            scalar_data: yaml_emitter_scalar_data_t::new(),
-
-            opened: 0,
-            closed: 0,
-
-            anchors: ptr::null(),
-
-            last_anchor_id: 0,
-
-            document: ptr::null()
-        }
-    }
-}
-
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_anchor_data_t {
     pub anchor: *const yaml_char_t,
     pub anchor_length: size_t,
     pub alias: c_int
-}
-
-impl yaml_emitter_anchor_data_t {
-    pub fn new() -> yaml_emitter_anchor_data_t {
-        yaml_emitter_anchor_data_t {
-            anchor: ptr::null(),
-            anchor_length: 0,
-            alias: 0
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -492,17 +313,6 @@ pub struct yaml_emitter_tag_data_t {
     pub handle_length: size_t,
     pub suffix: *const yaml_char_t,
     pub suffix_length: size_t
-}
-
-impl yaml_emitter_tag_data_t {
-    pub fn new() -> yaml_emitter_tag_data_t {
-        yaml_emitter_tag_data_t {
-            handle: ptr::null(),
-            handle_length: 0,
-            suffix: ptr::null(),
-            suffix_length: 0
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -515,21 +325,6 @@ pub struct yaml_emitter_scalar_data_t {
     pub single_quoted_allowed: c_int,
     pub block_allowed: c_int,
     pub style: YamlScalarStyle,
-}
-
-impl yaml_emitter_scalar_data_t {
-    pub fn new() -> yaml_emitter_scalar_data_t {
-        yaml_emitter_scalar_data_t {
-            value: ptr::null(),
-            length: 0,
-            multiline: 0,
-            flow_plain_allowed: 0,
-            block_plain_allowed: 0,
-            single_quoted_allowed: 0,
-            block_allowed: 0,
-            style: YamlAnyScalarStyle,
-        }
-    }
 }
 
 #[allow(non_camel_case_types)]
@@ -596,15 +391,6 @@ pub struct yaml_scalar_event_t {
 }
 
 impl yaml_event_t {
-    pub fn new() -> yaml_event_t {
-        yaml_event_t {
-            event_type: YAML_NO_EVENT,
-            data: new_yaml_event_data_t(),
-            start_mark: yaml_mark_t::new(),
-            end_mark: yaml_mark_t::new(),
-        }
-    }
-
     pub unsafe fn delete(&mut self) {
         yaml_event_delete(self);
     }

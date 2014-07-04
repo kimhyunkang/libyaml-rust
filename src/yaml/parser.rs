@@ -88,7 +88,7 @@ pub trait YamlParser {
 
     unsafe fn parse_event(&mut self) -> Option<YamlEvent> {
         let mut event = InternalEvent {
-            event_mem: ffi::yaml_event_t::new()
+            event_mem: mem::uninitialized()
         };
 
         if !self.base_parser_ref().parse(&mut event.event_mem) {
@@ -140,9 +140,9 @@ pub struct YamlBaseParser {
 }
 
 impl YamlBaseParser {
-    fn new() -> YamlBaseParser {
+    unsafe fn new() -> YamlBaseParser {
         YamlBaseParser {
-            parser_mem: ffi::yaml_parser_t::new()
+            parser_mem: mem::uninitialized()
         }
     }
 
@@ -190,20 +190,20 @@ impl<'r> YamlParser for YamlByteParser<'r> {
 
 impl<'r> YamlByteParser<'r> {
     pub fn init(bytes: &'r [u8], encoding: ffi::YamlEncoding) -> Box<YamlByteParser<'r>> {
-        let mut parser = box YamlByteParser {
-            base_parser: YamlBaseParser::new()
-        };
-
         unsafe {
+            let mut parser = box YamlByteParser {
+                base_parser: YamlBaseParser::new()
+            };
+
             if !parser.base_parser.initialize() {
                 fail!("failed to initialize yaml_parser_t");
             }
 
             ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
             parser.base_parser.set_input_string(bytes.as_ptr(), bytes.len());
-        }
 
-        parser
+            parser
+        }
     }
 }
 
@@ -220,12 +220,12 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 
 impl<'r> YamlIoParser<'r> {
     pub fn init<'r>(reader: &'r mut Reader, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'r>> {
-        let mut parser = box YamlIoParser {
-            base_parser: YamlBaseParser::new(),
-            reader: reader
-        };
-
         unsafe {
+            let mut parser = box YamlIoParser {
+                base_parser: YamlBaseParser::new(),
+                reader: reader
+            };
+
             if !parser.base_parser.initialize() {
                 fail!("failed to initialize yaml_parser_t");
             }
@@ -233,9 +233,9 @@ impl<'r> YamlIoParser<'r> {
             ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
 
             ffi::yaml_parser_set_input(&mut parser.base_parser.parser_mem, handle_reader_cb, mem::transmute(&mut *parser));
-        }
 
-        parser
+            parser
+        }
     }
 } 
 

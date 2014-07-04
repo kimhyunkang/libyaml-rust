@@ -16,7 +16,7 @@ pub struct YamlDocument {
 impl YamlDocument {
     pub unsafe fn parser_load(parser: &mut ffi::yaml_parser_t) -> Option<Box<YamlDocument>> {
         let mut document = box YamlDocument {
-            document_mem: ffi::yaml_document_t::new()
+            document_mem: mem::uninitialized()
         };
 
         if ffi::yaml_parser_load(parser, &mut document.document_mem) == 0 {
@@ -36,10 +36,6 @@ impl YamlDocument {
         tag_directives: &[YamlTagDirective],
         start_implicit: bool, end_implicit: bool) -> Box<YamlDocument>
     {
-        let mut document = box YamlDocument {
-            document_mem: ffi::yaml_document_t::new()
-        };
-
         let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
         let c_vsn_dir = match version_directive {
             None => ptr::null(),
@@ -63,15 +59,19 @@ impl YamlDocument {
         let c_start_implicit = if start_implicit { 1 } else { 0 };
         let c_end_implicit = if end_implicit { 1 } else { 0 };
         unsafe {
+            let mut document = box YamlDocument {
+                document_mem: mem::uninitialized()
+            };
+
             let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as int);
             if ffi::yaml_document_initialize(&mut document.document_mem, c_vsn_dir,
                 tag_dir_start, tag_dir_end, c_start_implicit, c_end_implicit) == 0
             {
                 fail!("yaml_document_initialize failed!")
             }
-        }
 
-        document
+            document
+        }
     }
 
     unsafe fn load<'r>(&'r self, node_ptr: *const ffi::yaml_node_t) -> YamlNode<'r> {

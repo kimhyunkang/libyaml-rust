@@ -13,9 +13,9 @@ pub struct YamlBaseEmitter {
 }
 
 impl YamlBaseEmitter {
-    fn new() -> YamlBaseEmitter {
+    unsafe fn new() -> YamlBaseEmitter {
         YamlBaseEmitter {
-            emitter_mem: ffi::yaml_emitter_t::new()
+            emitter_mem: mem::uninitialized()
         }
     }
 }
@@ -35,20 +35,20 @@ pub struct YamlEmitter<'r> {
 
 impl<'r> YamlEmitter<'r> {
     pub fn init<'r>(writer: &'r mut Writer) -> Box<YamlEmitter<'r>> {
-        let mut emitter = box YamlEmitter {
-            base_emitter: YamlBaseEmitter::new(),
-            writer: writer
-        };
-
         unsafe {
+            let mut emitter = box YamlEmitter {
+                base_emitter: YamlBaseEmitter::new(),
+                writer: writer
+            };
+
             if ffi::yaml_emitter_initialize(&mut emitter.base_emitter.emitter_mem) == 0 {
                 fail!("failed to initialize yaml_emitter_t");
             }
 
             ffi::yaml_emitter_set_output(&mut emitter.base_emitter.emitter_mem, handle_writer_cb, mem::transmute(&mut *emitter));
-        }
 
-        emitter
+            emitter
+        }
     }
 
     fn get_error(&self) -> (YamlErrorType, String) {
@@ -69,8 +69,9 @@ impl<'r> YamlEmitter<'r> {
     }
 
     fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_stream_start_event_initialize(&mut event, encoding) == 0 {
                 fail!("yaml_stream_start_event_initialize failed!");
             }
@@ -84,8 +85,9 @@ impl<'r> YamlEmitter<'r> {
     }
 
     fn emit_stream_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_stream_end_event_initialize(&mut event) == 0 {
                 fail!("yaml_stream_end_event_initialize failed!");
             }
@@ -116,7 +118,6 @@ impl<'r> YamlEmitter<'r> {
             implicit: bool)
         -> Result<(), (YamlErrorType, String)>
     {
-        let mut event = ffi::yaml_event_t::new();
         let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
         let c_vsn_dir = match version_directive {
             Some(directive) => {
@@ -138,6 +139,7 @@ impl<'r> YamlEmitter<'r> {
         }).collect();
         let tag_dir_start = c_tag_dirs.as_ptr();
         unsafe {
+            let mut event = mem::uninitialized();
             let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as int);
             let c_implicit = if implicit { 1 } else { 0 };
 
@@ -154,9 +156,10 @@ impl<'r> YamlEmitter<'r> {
     }
 
     fn emit_document_end_event(&mut self, implicit: bool) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         let c_implicit = if implicit { 1 } else { 0 };
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_document_end_event_initialize(&mut event, c_implicit) == 0 {
                 fail!("yaml_stream_end_event_initialize failed!");
             }
@@ -170,10 +173,11 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_alias_event(&mut self, anchor: &str) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         let c_anchor = anchor.to_c_str();
 
         unsafe {
+            let mut event = mem::uninitialized();
+
             c_anchor.with_ref(|ptr| {
                 if ffi::yaml_alias_event_initialize(&mut event, ptr as *const ffi::yaml_char_t) != 0 {
                     fail!("yaml_stream_end_event_initialize failed!")
@@ -205,8 +209,9 @@ impl<'r> YamlEmitter<'r> {
         let c_plain_implicit = if plain_implicit { 1 } else { 0 };
         let c_quoted_implicit = if quoted_implicit { 1 } else { 0 };
 
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_scalar_event_initialize(&mut event,
                     anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     value.as_ptr(), value.len() as libc::c_int,
@@ -249,8 +254,9 @@ impl<'r> YamlEmitter<'r> {
         };
         let c_implicit = if implicit { 1 } else { 0 };
 
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_sequence_start_event_initialize(&mut event,
                     anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
@@ -267,8 +273,9 @@ impl<'r> YamlEmitter<'r> {
     }
 
     fn emit_sequence_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_sequence_end_event_initialize(&mut event) == 0 {
                 fail!("yaml_sequence_end_event_initialize failed!");
             }
@@ -306,8 +313,9 @@ impl<'r> YamlEmitter<'r> {
         };
         let c_implicit = if implicit { 1 } else { 0 };
 
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_mapping_start_event_initialize(&mut event,
                     anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
@@ -324,8 +332,9 @@ impl<'r> YamlEmitter<'r> {
     }
 
     fn emit_mapping_end_event(&mut self) -> Result<(), (YamlErrorType, String)> {
-        let mut event = ffi::yaml_event_t::new();
         unsafe {
+            let mut event = mem::uninitialized();
+
             if ffi::yaml_mapping_end_event_initialize(&mut event) == 0 {
                 fail!("yaml_mapping_end_event_initialize failed!");
             }
