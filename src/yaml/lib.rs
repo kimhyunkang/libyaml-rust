@@ -1,9 +1,8 @@
-#![crate_id = "yaml#0.1-pre"]
+#![crate_name = "yaml"]
 
 #![comment = "LibYAML bindings for Rust"] 
 #![license = "MIT"]
-#![crate_type = "dylib"]
-#![crate_type = "rlib"]
+#![crate_type = "lib"]
 
 #![feature(globs)]
 #![feature(phase)]
