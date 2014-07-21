@@ -64,7 +64,7 @@ pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<Yaml
 
     result::collect(parser.load().map(|doc_res| {
         match doc_res {
-            Err(e) => Err(e.to_str()),
+            Err(e) => Err(e.to_string()),
             Ok(doc) => ctor.construct(doc.root().unwrap())
         }
     }))
@@ -80,7 +80,7 @@ pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<
 
     result::collect(parser.load().map(|doc_res| {
         match doc_res {
-            Err(e) => Err(e.to_str()),
+            Err(e) => Err(e.to_string()),
             Ok(doc) => ctor.construct(doc.root().unwrap())
         }
     }))
