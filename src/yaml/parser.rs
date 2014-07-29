@@ -98,13 +98,13 @@ pub trait YamlParser {
         }
     }
 
-    fn parse(~self) -> YamlEventStream<Self> {
+    fn parse(self: Box<Self>) -> YamlEventStream<Self> {
         YamlEventStream {
             parser: self,
         }
     }
 
-    fn load(~self) -> YamlDocumentStream<Self> {
+    fn load(self: Box<Self>) -> YamlDocumentStream<Self> {
         YamlDocumentStream {
             parser: self,
         }
