@@ -1,3 +1,4 @@
-build
-src/yaml/type_size.rs
+target
+src/type_size.rs
 .DS_Store
+Cargo.lock
