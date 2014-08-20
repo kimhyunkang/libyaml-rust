@@ -90,7 +90,7 @@ pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<
 mod test {
     use std::mem;
     use std::io;
-    use constructor::*;
+    use constructor::{YamlInteger, YamlSequence};
 
     #[test]
     fn test_version_string() {

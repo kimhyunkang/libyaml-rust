@@ -197,9 +197,9 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
 #[cfg(test)]
 mod test {
     use parser::{YamlParser, YamlByteParser};
-    use constructor::*;
     use std::f64;
     use ffi::YamlUtf8Encoding;
+    use constructor::{YamlConstructor, YamlStandardConstructor, YamlInteger, YamlFloat, YamlBool, YamlNull, YamlString, YamlSequence};
 
     #[test]
     fn test_standard_constructor() {
