@@ -109,6 +109,7 @@ pub enum YamlEncoding {
     YamlUtf16BeEncoding
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_mark_t {
     pub index: size_t,
@@ -116,6 +117,7 @@ pub struct yaml_mark_t {
     pub column: size_t
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_buffer_t {
     pub start: *const yaml_char_t,
@@ -124,6 +126,7 @@ pub struct yaml_buffer_t {
     pub last: *const yaml_char_t
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_queue_t {
     pub start: *const c_void,
@@ -132,6 +135,7 @@ pub struct yaml_queue_t {
     pub tail: *const c_void
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_stack_t {
     pub start: *const c_void,
@@ -149,6 +153,7 @@ pub static YAML_SEQUENCE_NODE:yaml_node_type_t = 2;
 /** A mapping node. */
 pub static YAML_MAPPING_NODE:yaml_node_type_t = 3;
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_node_t {
     pub node_type: yaml_node_type_t,
@@ -158,6 +163,7 @@ pub struct yaml_node_t {
     pub end_mark: yaml_mark_t,
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_node_t {
     pub value: *const yaml_char_t,
@@ -165,18 +171,21 @@ pub struct yaml_scalar_node_t {
     pub style: YamlScalarStyle
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_node_t {
     pub items: yaml_stack_t,
     pub style: YamlSequenceStyle
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_node_pair_t {
     pub key: c_int,
     pub value: c_int
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_document_t {
     pub nodes: yaml_stack_t,
@@ -191,6 +200,7 @@ pub struct yaml_document_t {
     pub end_mark: yaml_mark_t,
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_parser_t {
     pub error: YamlErrorType,
@@ -234,6 +244,7 @@ pub struct yaml_parser_t {
     pub document: *const yaml_document_t,
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub enum yaml_break_t {
     /** Let the parser choose the break type. */
@@ -246,6 +257,7 @@ pub enum yaml_break_t {
     YAML_CRLN_BREAK
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_t {
     pub error: YamlErrorType,
@@ -300,6 +312,7 @@ pub struct yaml_emitter_t {
     pub document: *const yaml_document_t
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_anchor_data_t {
     pub anchor: *const yaml_char_t,
@@ -307,6 +320,7 @@ pub struct yaml_emitter_anchor_data_t {
     pub alias: c_int
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_tag_data_t {
     pub handle: *const yaml_char_t,
@@ -315,6 +329,7 @@ pub struct yaml_emitter_tag_data_t {
     pub suffix_length: size_t
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_scalar_data_t {
     pub value: *const yaml_char_t,
@@ -327,6 +342,7 @@ pub struct yaml_emitter_scalar_data_t {
     pub style: YamlScalarStyle,
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_event_t {
     pub event_type: yaml_event_type_t,
@@ -335,17 +351,20 @@ pub struct yaml_event_t {
     pub end_mark: yaml_mark_t
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_stream_start_event_t {
     pub encoding: YamlEncoding
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_list_t {
     pub start: *const yaml_tag_directive_t,
     pub end: *const yaml_tag_directive_t,
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_document_start_event_t {
     pub version_directive: *const yaml_version_directive_t,
@@ -353,11 +372,13 @@ pub struct yaml_document_start_event_t {
     pub implicit: c_int
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_document_end_event_t {
     pub implicit: c_int
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_alias_event_t {
     pub anchor: *const yaml_char_t
@@ -371,6 +392,7 @@ pub struct yaml_sequence_start_event_t {
     pub style: YamlSequenceStyle
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_mapping_start_event_t {
     pub anchor: *const yaml_char_t,
@@ -379,6 +401,7 @@ pub struct yaml_mapping_start_event_t {
     pub style: YamlSequenceStyle
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_event_t {
     pub anchor: *const yaml_char_t,
@@ -396,12 +419,14 @@ impl yaml_event_t {
     }
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_version_directive_t {
     pub major: c_int,
     pub minor: c_int
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_tag_directive_t {
     pub handle: *const c_char,
