@@ -209,7 +209,7 @@ impl<'r> YamlByteParser<'r> {
 
 pub struct YamlIoParser<'r> {
     base_parser: YamlBaseParser,
-    reader: &'r mut Reader,
+    reader: &'r mut Reader+'r,
 }
 
 impl<'r> YamlParser for YamlIoParser<'r> {

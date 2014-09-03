@@ -30,7 +30,7 @@ impl Drop for YamlBaseEmitter {
 
 pub struct YamlEmitter<'r> {
     base_emitter: YamlBaseEmitter,
-    writer: &'r mut Writer
+    writer: &'r mut Writer+'r
 }
 
 impl<'r> YamlEmitter<'r> {
