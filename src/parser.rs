@@ -247,7 +247,6 @@ mod test {
     use parser::{YamlParser, YamlError};
     use ffi;
     use std::io;
-    use std::result;
 
     #[test]
     fn test_byte_parser() {
@@ -265,9 +264,9 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream = parser.parse();
+        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
 
-        assert_eq!(expected, result::collect(stream));
+        assert_eq!(expected, stream);
     }
 
     #[test]
@@ -287,9 +286,9 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream = parser.parse();
+        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
 
-        assert_eq!(expected, result::collect(stream));
+        assert_eq!(expected, stream);
     }
 
     #[test]
@@ -309,9 +308,9 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream = parser.parse();
+        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
 
-        assert_eq!(expected, result::collect(stream));
+        assert_eq!(expected, stream);
     }
 
     #[test]
@@ -334,7 +333,7 @@ mod test {
     fn test_document() {
         let data = "[1, 2, 3]";
         let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
-        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
+        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),
@@ -357,7 +356,7 @@ mod test {
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
         let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
-        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = result::collect(parser.load());
+        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
             Err(e) => fail!("unexpected result: {:?}", e),

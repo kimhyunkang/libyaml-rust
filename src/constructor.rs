@@ -4,7 +4,6 @@ use ffi;
 use parser::YamlMark;
 
 use std::from_str::from_str;
-use std::result;
 use std::int;
 use std::f64;
 use std::u32;
@@ -177,11 +176,12 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
     }
 
     fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, String> {
-        result::collect(sequence.values().map(|node| { self.construct(node) })).map(|list| YamlSequence(list))
+        let res:Result<Vec<YamlStandardData>, String> = sequence.values().map(|node| { self.construct(node) }).collect();
+        res.map(|list| YamlSequence(list))
     }
 
     fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, String> {
-        let pairs = mapping.pairs().map(|(key_node, value_node)| {
+        let mut pairs = mapping.pairs().map(|(key_node, value_node)| {
             match self.construct(key_node) {
                 Ok(key) => match self.construct(value_node) {
                     Ok(value) => Ok((key, value)),
@@ -190,7 +190,8 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
                 Err(e) => Err(e)
             }
         });
-        result::collect(pairs).map(YamlMapping)
+        let res:Result<Vec<(YamlStandardData, YamlStandardData)>, String> = pairs.collect();
+        res.map(YamlMapping)
     }
 }
 

@@ -18,7 +18,6 @@ extern crate regex;
 
 use parser::YamlParser;
 use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
-use std::result;
 
 pub mod ffi;
 pub mod event;
@@ -62,12 +61,12 @@ pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<Yaml
     let parser = parser::YamlByteParser::init(bytes, encoding);
     let ctor = YamlStandardConstructor::new();
 
-    result::collect(parser.load().map(|doc_res| {
+    parser.load().map(|doc_res| {
         match doc_res {
             Err(e) => Err(e.to_string()),
             Ok(doc) => ctor.construct(doc.root().unwrap())
         }
-    }))
+    }).collect()
 }
 
 pub fn parse_io_utf8(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
@@ -78,12 +77,12 @@ pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<
     let parser = parser::YamlIoParser::init(reader, encoding);
     let ctor = YamlStandardConstructor::new();
 
-    result::collect(parser.load().map(|doc_res| {
+    parser.load().map(|doc_res| {
         match doc_res {
             Err(e) => Err(e.to_string()),
             Ok(doc) => ctor.construct(doc.root().unwrap())
         }
-    }))
+    }).collect()
 }
 
 #[cfg(test)]
