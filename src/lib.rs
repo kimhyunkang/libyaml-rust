@@ -1,4 +1,4 @@
-#![crate_name = "yaml"]
+#![crate_name = "libyaml-rust"]
 
 #![comment = "LibYAML bindings for Rust"] 
 #![license = "MIT"]
