@@ -1,5 +1,5 @@
 [package]
-name = "yaml"
+name = "libyaml-rust"
 version = "0.0.1"
 authors = [ "kimhyunkang@gmail.com" ]
 build = "make"
