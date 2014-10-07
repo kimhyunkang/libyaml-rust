@@ -53,44 +53,44 @@ impl YamlStandardConstructor {
                     // escape sequences
                     match it.next() {
                         None => return Err(format!("invalid escape sequence at line {:u}, col {:u}", mark.line, mark.column)),
-                        Some('0') => buf.push_char('\x00'),
-                        Some('a') => buf.push_char('\x07'),
-                        Some('b') => buf.push_char('\x08'),
-                        Some('t') | Some('\t') => buf.push_char('\t'),
-                        Some('n') => buf.push_char('\n'),
-                        Some('v') => buf.push_char('\x0b'),
-                        Some('f') => buf.push_char('\x0c'),
-                        Some('r') => buf.push_char('\x0d'),
-                        Some('e') => buf.push_char('\x1b'),
-                        Some('N') => buf.push_char('\x85'),
-                        Some('_') => buf.push_char('\xa0'),
-                        Some('L') => buf.push_char('\u2028'),
-                        Some('P') => buf.push_char('\u2029'),
+                        Some('0') => buf.push('\x00'),
+                        Some('a') => buf.push('\x07'),
+                        Some('b') => buf.push('\x08'),
+                        Some('t') | Some('\t') => buf.push('\t'),
+                        Some('n') => buf.push('\n'),
+                        Some('v') => buf.push('\x0b'),
+                        Some('f') => buf.push('\x0c'),
+                        Some('r') => buf.push('\x0d'),
+                        Some('e') => buf.push('\x1b'),
+                        Some('N') => buf.push('\x85'),
+                        Some('_') => buf.push('\xa0'),
+                        Some('L') => buf.push('\u2028'),
+                        Some('P') => buf.push('\u2029'),
                         Some('x') => {
                             let code:String = it.take(2).collect();
                             match parse_escape_sequence(code, 2) {
-                                Some(c) => buf.push_char(c),
+                                Some(c) => buf.push(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
                             }
                         },
                         Some('u') => {
                             let code:String = it.take(4).collect();
                             match parse_escape_sequence(code, 4) {
-                                Some(c) => buf.push_char(c),
+                                Some(c) => buf.push(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
                             }
                         },
                         Some('U') => {
                             let code:String = it.take(8).collect();
                             match parse_escape_sequence(code, 8) {
-                                Some(c) => buf.push_char(c),
+                                Some(c) => buf.push(c),
                                 None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
                             }
                         },
-                        Some(c) => buf.push_char(c)
+                        Some(c) => buf.push(c)
                     }
                 },
-                Some(c) => buf.push_char(c)
+                Some(c) => buf.push(c)
             }
         }
     }
