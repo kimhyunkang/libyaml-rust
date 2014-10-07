@@ -105,27 +105,27 @@ mod test {
 
     #[test]
     fn test_event_size() {
-        assert_eq!(super::type_size::yaml_event_t_size, mem::size_of::<super::ffi::yaml_event_t>())
+        assert_eq!(super::type_size::YAML_EVENT_T_SIZE, mem::size_of::<super::ffi::yaml_event_t>())
     }
 
     #[test]
     fn test_parser_size() {
-        assert_eq!(super::type_size::yaml_parser_t_size, mem::size_of::<super::ffi::yaml_parser_t>())
+        assert_eq!(super::type_size::YAML_PARSER_T_SIZE, mem::size_of::<super::ffi::yaml_parser_t>())
     }
 
     #[test]
     fn test_emitter_size() {
-        assert_eq!(super::type_size::yaml_emitter_t_size, mem::size_of::<super::ffi::yaml_emitter_t>())
+        assert_eq!(super::type_size::YAML_EMITTER_T_SIZE, mem::size_of::<super::ffi::yaml_emitter_t>())
     }
 
     #[test]
     fn test_document_size() {
-        assert_eq!(super::type_size::yaml_document_t_size, mem::size_of::<super::ffi::yaml_document_t>())
+        assert_eq!(super::type_size::YAML_DOCUMENT_T_SIZE, mem::size_of::<super::ffi::yaml_document_t>())
     }
 
     #[test]
     fn test_node_size() {
-        assert_eq!(super::type_size::yaml_node_t_size, mem::size_of::<super::ffi::yaml_node_t>())
+        assert_eq!(super::type_size::YAML_NODE_T_SIZE, mem::size_of::<super::ffi::yaml_node_t>())
     }
 
     #[test]
