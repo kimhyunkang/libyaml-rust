@@ -36,34 +36,6 @@ pub enum YamlErrorType {
     YamlEmitterError
 }
 
-/** An empty event. */
-pub static YAML_NO_EVENT:yaml_event_type_t = 0;
-
-/** A STREAM-START event. */
-pub static YAML_STREAM_START_EVENT:yaml_event_type_t = 1;
-/** A STREAM-END event. */
-pub static YAML_STREAM_END_EVENT:yaml_event_type_t = 2;
-
-/** A DOCUMENT-START event. */
-pub static YAML_DOCUMENT_START_EVENT:yaml_event_type_t = 3;
-/** A DOCUMENT-END event. */
-pub static YAML_DOCUMENT_END_EVENT:yaml_event_type_t = 4;
-
-/** An ALIAS event. */
-pub static YAML_ALIAS_EVENT:yaml_event_type_t = 5;
-/** A SCALAR event. */
-pub static YAML_SCALAR_EVENT:yaml_event_type_t = 6;
-
-/** A SEQUENCE-START event. */
-pub static YAML_SEQUENCE_START_EVENT:yaml_event_type_t = 7;
-/** A SEQUENCE-END event. */
-pub static YAML_SEQUENCE_END_EVENT:yaml_event_type_t = 8;
-
-/** A MAPPING-START event. */
-pub static YAML_MAPPING_START_EVENT:yaml_event_type_t = 9;
-/** A MAPPING-END event. */
-pub static YAML_MAPPING_END_EVENT:yaml_event_type_t = 10;
-
 #[deriving(Show, PartialEq)]
 #[repr(C)]
 pub enum YamlSequenceStyle {
@@ -143,15 +115,18 @@ pub struct yaml_stack_t {
     pub top: *const c_void
 }
 
-/** An empty node. */
-pub static YAML_NO_NODE:yaml_node_type_t = 0;
+#[repr(C)]
+pub enum yaml_node_type_t {
+    /** An empty node. */
+    YAML_NO_NODE = 0,
 
-/** A scalar node. */
-pub static YAML_SCALAR_NODE:yaml_node_type_t = 1;
-/** A sequence node. */
-pub static YAML_SEQUENCE_NODE:yaml_node_type_t = 2;
-/** A mapping node. */
-pub static YAML_MAPPING_NODE:yaml_node_type_t = 3;
+    /** A scalar node. */
+    YAML_SCALAR_NODE,
+    /** A sequence node. */
+    YAML_SEQUENCE_NODE,
+    /** A mapping node. */
+    YAML_MAPPING_NODE
+}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]

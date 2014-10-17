@@ -126,8 +126,7 @@ impl YamlEvent {
                     style: evt_data.style
                 })
             },
-            ffi::YAML_MAPPING_END_EVENT => YamlMappingEndEvent,
-            _ => fail!("unknown event type")
+            ffi::YAML_MAPPING_END_EVENT => YamlMappingEndEvent
         }
     }
 }

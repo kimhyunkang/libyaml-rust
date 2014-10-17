@@ -21,8 +21,37 @@ int main()
     printf("}\n\n");
 
     printf("#[allow(non_camel_case_types)]\n");
-    // FIXME: might not work on big endian machines
-    printf("pub type yaml_event_type_t = u%lu;\n\n", ((size_t)(&dummy_event.data) - (size_t)(&dummy_event)) * 8);
+    printf("#[repr(u%lu)]\n", ((size_t)(&dummy_event.data) - (size_t)(&dummy_event)) * 8);
+    printf("#[deriving(Show, PartialEq)]\n");
+    printf("pub enum yaml_event_type_t {\n");
+    printf("    /** An empty event. */\n");
+    printf("    YAML_NO_EVENT = 0,\n\n");
+
+    printf("    /** A STREAM-START event. */\n");
+    printf("    YAML_STREAM_START_EVENT,\n");
+    printf("    /** A STREAM-END event. */\n");
+    printf("    YAML_STREAM_END_EVENT,\n\n");
+
+    printf("    /** A DOCUMENT-START event. */\n");
+    printf("    YAML_DOCUMENT_START_EVENT,\n");
+    printf("    /** A DOCUMENT-END event. */\n");
+    printf("    YAML_DOCUMENT_END_EVENT,\n\n");
+
+    printf("    /** An ALIAS event. */\n");
+    printf("    YAML_ALIAS_EVENT,\n");
+    printf("    /** A SCALAR event. */\n");
+    printf("    YAML_SCALAR_EVENT,\n\n");
+
+    printf("    /** A SEQUENCE-START event. */\n");
+    printf("    YAML_SEQUENCE_START_EVENT,\n");
+    printf("    /** A SEQUENCE-END event. */\n");
+    printf("    YAML_SEQUENCE_END_EVENT,\n\n");
+
+    printf("    /** A MAPPING-START event. */\n");
+    printf("    YAML_MAPPING_START_EVENT,\n");
+    printf("    /** A MAPPING-END event. */\n");
+    printf("    YAML_MAPPING_END_EVENT\n");
+    printf("}\n\n");
 
     yaml_parser_t dummy_parser;
 
@@ -41,9 +70,6 @@ int main()
     printf("}\n\n");
 
     yaml_node_t dummy_node;
-
-    printf("#[allow(non_camel_case_types)]\n");
-    printf("pub type yaml_node_type_t = u%lu;\n\n", ((size_t)(&dummy_node.tag) - (size_t)(&dummy_node)) * 8);
 
     printf("#[allow(non_camel_case_types)]\n");
     printf("pub type yaml_node_data_t = [c_int, ..%lu];\n\n", sizeof(dummy_node.data) / sizeof(int));
