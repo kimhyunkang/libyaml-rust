@@ -325,7 +325,7 @@ mod test {
         let stream_err = stream.next();
         match stream_err {
             Some(Err(err)) => assert_eq!(ffi::YamlScannerError, err.kind),
-            evt => fail!("unexpected result: {:?}", evt),
+            evt => fail!("unexpected result: {}", evt),
         }
     }
 
@@ -336,18 +336,18 @@ mod test {
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => fail!("unexpected result: {:?}", e),
+            Err(e) => fail!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
                             document::YamlScalarNode(scalar) => scalar.get_value(),
-                            _ => fail!("unexpected scalar: {:?}", node)
+                            _ => fail!("unexpected scalar")
                         }
                     }).collect();
                     assert_eq!(vec!["1".to_string(), "2".to_string(), "3".to_string()], values)
                 },
-                _ => fail!("unexpected result: {:?}", docs)
+                _ => fail!("unexpected result")
             }
         }
     }
@@ -359,24 +359,24 @@ mod test {
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => fail!("unexpected result: {:?}", e),
+            Err(e) => fail!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
                             match key {
                                 document::YamlScalarNode(scalar) => scalar.get_value(),
-                                _ => fail!("unexpected scalar: {:?}", key)
+                                _ => fail!("unexpected scalar")
                             },
                             match value {
                                 document::YamlScalarNode(scalar) => scalar.get_value(),
-                                _ => fail!("unexpected scalar: {:?}", value)
+                                _ => fail!("unexpected scalar")
                             }
                         )
                     }).collect();
                     assert_eq!(vec![("a".to_string(), "1".to_string()), ("b".to_string(), "2".to_string())], values)
                 },
-                _ => fail!("unexpected result: {:?}", docs)
+                _ => fail!("unexpected result")
             }
         }
     }

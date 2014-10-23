@@ -212,7 +212,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("unexpected result: {:?}", err)
+            _ => fail!("unexpected result")
         }
     }
 
@@ -226,7 +226,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlInteger(0o10), YamlInteger(0x21), YamlInteger(-30)])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("unexpected result: {:?}", err)
+            _ => fail!("unexpected result")
         }
     }
 
@@ -248,13 +248,13 @@ mod test {
                                 assert!((f3 - 1e+2).abs() < 1.0e-6);
                                 assert!((f4 + 1.2e-3).abs() < 1.0e-6);
                             },
-                            _ => fail!("unexpected sequence: {:?}", seq)
+                            _ => fail!("unexpected sequence")
                         }
                     },
-                    _ => fail!("unexpected result: {:?}", value)
+                    _ => fail!("unexpected result")
                 }
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -268,7 +268,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlFloat(f64::INFINITY), YamlFloat(f64::NEG_INFINITY)])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -282,7 +282,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlBool(true), YamlBool(false), YamlNull])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -296,7 +296,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlString("hello, \"world\"".to_string())), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -310,7 +310,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlString(r#"here's to "quotes""#.to_string())), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -324,7 +324,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlInteger(1000), YamlInteger(-2000000)])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 
@@ -338,7 +338,7 @@ mod test {
                 let ctor = YamlStandardConstructor::new();
                 assert_eq!(Ok(YamlSequence(vec![YamlInteger(-48), YamlInteger(-448), YamlInteger(-6)])), ctor.construct(doc.root().unwrap()))
             },
-            err => fail!("document parse failure: {:?}", err)
+            _ => fail!("document parse failure")
         }
     }
 }
