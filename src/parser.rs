@@ -196,7 +196,7 @@ impl<'r> YamlByteParser<'r> {
             };
 
             if !parser.base_parser.initialize() {
-                fail!("failed to initialize yaml_parser_t");
+                panic!("failed to initialize yaml_parser_t");
             }
 
             ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
@@ -227,7 +227,7 @@ impl<'r> YamlIoParser<'r> {
             };
 
             if !parser.base_parser.initialize() {
-                fail!("failed to initialize yaml_parser_t");
+                panic!("failed to initialize yaml_parser_t");
             }
 
             ffi::yaml_parser_set_encoding(&mut parser.base_parser.parser_mem, encoding);
@@ -325,7 +325,7 @@ mod test {
         let stream_err = stream.next();
         match stream_err {
             Some(Err(err)) => assert_eq!(ffi::YamlScannerError, err.kind),
-            evt => fail!("unexpected result: {}", evt),
+            evt => panic!("unexpected result: {}", evt),
         }
     }
 
@@ -336,18 +336,18 @@ mod test {
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => fail!("unexpected result: {}", e),
+            Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
                             document::YamlScalarNode(scalar) => scalar.get_value(),
-                            _ => fail!("unexpected scalar")
+                            _ => panic!("unexpected scalar")
                         }
                     }).collect();
                     assert_eq!(vec!["1".to_string(), "2".to_string(), "3".to_string()], values)
                 },
-                _ => fail!("unexpected result")
+                _ => panic!("unexpected result")
             }
         }
     }
@@ -359,24 +359,24 @@ mod test {
         let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => fail!("unexpected result: {}", e),
+            Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(document::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
                             match key {
                                 document::YamlScalarNode(scalar) => scalar.get_value(),
-                                _ => fail!("unexpected scalar")
+                                _ => panic!("unexpected scalar")
                             },
                             match value {
                                 document::YamlScalarNode(scalar) => scalar.get_value(),
-                                _ => fail!("unexpected scalar")
+                                _ => panic!("unexpected scalar")
                             }
                         )
                     }).collect();
                     assert_eq!(vec![("a".to_string(), "1".to_string()), ("b".to_string(), "2".to_string())], values)
                 },
-                _ => fail!("unexpected result")
+                _ => panic!("unexpected result")
             }
         }
     }

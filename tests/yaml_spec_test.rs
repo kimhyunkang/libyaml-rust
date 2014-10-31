@@ -19,9 +19,9 @@ fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlS
         Ok(docs) => if docs.len() == 1 {
             assert_eq!(docs.as_slice().head().unwrap(), &expected)
         } else {
-            fail!("too many number of documents: {}", docs)
+            panic!("too many number of documents: {}", docs)
         },
-        Err(e) => fail!("parse failure: {}", e)
+        Err(e) => panic!("parse failure: {}", e)
     }
 }
 

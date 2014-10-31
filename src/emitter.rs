@@ -42,7 +42,7 @@ impl<'r> YamlEmitter<'r> {
             };
 
             if ffi::yaml_emitter_initialize(&mut emitter.base_emitter.emitter_mem) == 0 {
-                fail!("failed to initialize yaml_emitter_t");
+                panic!("failed to initialize yaml_emitter_t");
             }
 
             ffi::yaml_emitter_set_output(&mut emitter.base_emitter.emitter_mem, handle_writer_cb, mem::transmute(&mut *emitter));
@@ -73,7 +73,7 @@ impl<'r> YamlEmitter<'r> {
             let mut event = mem::uninitialized();
 
             if ffi::yaml_stream_start_event_initialize(&mut event, encoding) == 0 {
-                fail!("yaml_stream_start_event_initialize failed!");
+                panic!("yaml_stream_start_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -89,7 +89,7 @@ impl<'r> YamlEmitter<'r> {
             let mut event = mem::uninitialized();
 
             if ffi::yaml_stream_end_event_initialize(&mut event) == 0 {
-                fail!("yaml_stream_end_event_initialize failed!");
+                panic!("yaml_stream_end_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -144,7 +144,7 @@ impl<'r> YamlEmitter<'r> {
             let c_implicit = if implicit { 1 } else { 0 };
 
             if ffi::yaml_document_start_event_initialize(&mut event, c_vsn_dir, tag_dir_start, tag_dir_end, c_implicit) == 0 {
-                fail!("yaml_document_start_event_initialize failed!");
+                panic!("yaml_document_start_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -161,7 +161,7 @@ impl<'r> YamlEmitter<'r> {
             let mut event = mem::uninitialized();
 
             if ffi::yaml_document_end_event_initialize(&mut event, c_implicit) == 0 {
-                fail!("yaml_stream_end_event_initialize failed!");
+                panic!("yaml_stream_end_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -180,7 +180,7 @@ impl<'r> YamlEmitter<'r> {
 
             let ptr = c_anchor.as_ptr();
             if ffi::yaml_alias_event_initialize(&mut event, ptr as *const ffi::yaml_char_t) != 0 {
-                fail!("yaml_stream_end_event_initialize failed!")
+                panic!("yaml_stream_end_event_initialize failed!")
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -217,7 +217,7 @@ impl<'r> YamlEmitter<'r> {
                     c_plain_implicit, c_quoted_implicit,
                     style) == 0
             {
-                fail!("yaml_scalar_event_initialize failed!");
+                panic!("yaml_scalar_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -260,7 +260,7 @@ impl<'r> YamlEmitter<'r> {
                     anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
             {
-                fail!("yaml_sequence_start_event_initialize failed!");
+                panic!("yaml_sequence_start_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -276,7 +276,7 @@ impl<'r> YamlEmitter<'r> {
             let mut event = mem::uninitialized();
 
             if ffi::yaml_sequence_end_event_initialize(&mut event) == 0 {
-                fail!("yaml_sequence_end_event_initialize failed!");
+                panic!("yaml_sequence_end_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -319,7 +319,7 @@ impl<'r> YamlEmitter<'r> {
                     anchor_ptr as *const ffi::yaml_char_t, tag_ptr as *const ffi::yaml_char_t,
                     c_implicit, style) == 0
             {
-                fail!("yaml_mapping_start_event_initialize failed!");
+                panic!("yaml_mapping_start_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {
@@ -335,7 +335,7 @@ impl<'r> YamlEmitter<'r> {
             let mut event = mem::uninitialized();
 
             if ffi::yaml_mapping_end_event_initialize(&mut event) == 0 {
-                fail!("yaml_mapping_end_event_initialize failed!");
+                panic!("yaml_mapping_end_event_initialize failed!");
             }
 
             if ffi::yaml_emitter_emit(&mut self.base_emitter.emitter_mem, &mut event) != 0 {

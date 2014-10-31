@@ -67,7 +67,7 @@ impl YamlDocument {
             if ffi::yaml_document_initialize(&mut document.document_mem, c_vsn_dir,
                 tag_dir_start, tag_dir_end, c_start_implicit, c_end_implicit) == 0
             {
-                fail!("yaml_document_initialize failed!")
+                panic!("yaml_document_initialize failed!")
             }
 
             document
@@ -76,7 +76,7 @@ impl YamlDocument {
 
     unsafe fn load<'r>(&'r self, node_ptr: *const ffi::yaml_node_t) -> YamlNode<'r> {
         if node_ptr == ptr::null() {
-            fail!("empty node")
+            panic!("empty node")
         }
         let node = &*node_ptr;
         match node.node_type {
@@ -103,7 +103,7 @@ impl YamlDocument {
                     data: mapping_data
                 })
             },
-            _ => fail!("invalid node")
+            _ => panic!("invalid node")
         }
     }
 
