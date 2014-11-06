@@ -4,9 +4,8 @@ use ffi;
 use parser::YamlMark;
 
 use std::from_str::from_str;
-use std::int;
+use std::num::FromStrRadix;
 use std::f64;
-use std::u32;
 use std::char;
 
 pub trait YamlConstructor<T, E> {
@@ -97,7 +96,7 @@ impl YamlStandardConstructor {
 }
 
 fn parse_escape_sequence(rep: String, expected_len: uint) -> Option<char> {
-    match u32::parse_bytes(rep.as_bytes(), 16) {
+    match FromStrRadix::from_str_radix(rep.as_slice(), 16) {
         Some(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
@@ -111,7 +110,8 @@ fn parse_int(sign: &str, data: &str, radix: uint) -> int {
         };
 
     let filtered:String = data.chars().filter(|&c| c != '_').collect();
-    int::parse_bytes(filtered.as_bytes(), radix).unwrap() * sign_flag
+    let unsigned:int = FromStrRadix::from_str_radix(filtered.as_slice(), radix).unwrap();
+    return unsigned * sign_flag;
 }
 
 impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
