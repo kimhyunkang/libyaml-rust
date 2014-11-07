@@ -114,13 +114,22 @@ fn parse_int(sign: &str, data: &str, radix: uint) -> int {
     return unsigned * sign_flag;
 }
 
+fn parse_float(sign: &str, data: &str) -> f64 {
+    let unsigned:f64 = from_str(data).unwrap();
+    if sign == "-" {
+        return -unsigned;
+    } else {
+        return unsigned;
+    }
+}
+
 impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, String> {
         let dec_int = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
         let oct_int = regex!(r"^([-+]?)0o?([0-7_]+)$");
         let hex_int = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
         let bin_int = regex!(r"^([-+]?)0b([0-1_]+)$");
-        let float_pattern = regex!(r"^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$");
+        let float_pattern = regex!(r"^([-+]?)(\.[0-9]+|[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?)$");
         let pos_inf = regex!(r"^[+]?(\.inf|\.Inf|\.INF)$");
         let neg_inf = regex!(r"^-(\.inf|\.Inf|\.INF)$");
         let nan = regex!(r"^(\.nan|\.NaN|\.NAN)$");
@@ -147,10 +156,15 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
                 };
 
                 if dec_int.is_match(value.as_slice()) {
-                    Ok(YamlInteger(parse_int("", value.as_slice(), 10)))
-                } else if float_pattern.is_match(value.as_slice()) {
-                    Ok(YamlFloat(from_str(value.as_slice()).unwrap()))
-                } else if pos_inf.is_match(value.as_slice()) {
+                    return Ok(YamlInteger(parse_int("", value.as_slice(), 10)));
+                }
+
+                match float_pattern.captures(value.as_slice()) {
+                    Some(caps) => return Ok(YamlFloat(parse_float(caps.at(1), caps.at(2)))),
+                    None => ()
+                };
+
+                if pos_inf.is_match(value.as_slice()) {
                     Ok(YamlFloat(f64::INFINITY))
                 } else if neg_inf.is_match(value.as_slice()) {
                     Ok(YamlFloat(f64::NEG_INFINITY))
