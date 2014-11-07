@@ -52,19 +52,19 @@ impl YamlStandardConstructor {
                     // escape sequences
                     match it.next() {
                         None => return Err(format!("invalid escape sequence at line {:u}, col {:u}", mark.line, mark.column)),
-                        Some('0') => buf.push('\x00'),
-                        Some('a') => buf.push('\x07'),
-                        Some('b') => buf.push('\x08'),
-                        Some('t') | Some('\t') => buf.push('\t'),
-                        Some('n') => buf.push('\n'),
-                        Some('v') => buf.push('\x0b'),
-                        Some('f') => buf.push('\x0c'),
-                        Some('r') => buf.push('\x0d'),
-                        Some('e') => buf.push('\x1b'),
-                        Some('N') => buf.push('\u0085'),
-                        Some('_') => buf.push('\u00a0'),
-                        Some('L') => buf.push('\u2028'),
-                        Some('P') => buf.push('\u2029'),
+                        Some('0') => buf.push('\x00'),              // null
+                        Some('a') => buf.push('\x07'),              // ASCII bell
+                        Some('b') => buf.push('\x08'),              // backspace
+                        Some('t') | Some('\t') => buf.push('\t'),   // horizontal tab
+                        Some('n') => buf.push('\n'),                // linefeed
+                        Some('v') => buf.push('\x0b'),              // vertical tab
+                        Some('f') => buf.push('\x0c'),              // form feed
+                        Some('r') => buf.push('\x0d'),              // carriage return
+                        Some('e') => buf.push('\x1b'),              // ASCII escape
+                        Some('N') => buf.push('\u0085'),            // unicode next line
+                        Some('_') => buf.push('\u00a0'),            // unicode non-breaking space
+                        Some('L') => buf.push('\u2028'),            // unicode line separator
+                        Some('P') => buf.push('\u2029'),            // unicode paragraph separator
                         Some('x') => {
                             let code:String = it.take(2).collect();
                             match parse_escape_sequence(code, 2) {
