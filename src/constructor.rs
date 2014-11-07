@@ -61,8 +61,8 @@ impl YamlStandardConstructor {
                         Some('f') => buf.push('\x0c'),
                         Some('r') => buf.push('\x0d'),
                         Some('e') => buf.push('\x1b'),
-                        Some('N') => buf.push('\x85'),
-                        Some('_') => buf.push('\xa0'),
+                        Some('N') => buf.push('\u0085'),
+                        Some('_') => buf.push('\u00a0'),
                         Some('L') => buf.push('\u2028'),
                         Some('P') => buf.push('\u2029'),
                         Some('x') => {
