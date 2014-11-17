@@ -2,4 +2,4 @@
 name = "yaml"
 version = "0.0.1"
 authors = [ "kimhyunkang@gmail.com" ]
-build = "make"
+build = "build.rs"
