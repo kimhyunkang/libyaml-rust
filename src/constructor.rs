@@ -3,7 +3,6 @@ use document::YamlNodeData;
 use ffi;
 use parser::YamlMark;
 
-use std::from_str::from_str;
 use std::num::FromStrRadix;
 use std::f64;
 use std::char;
