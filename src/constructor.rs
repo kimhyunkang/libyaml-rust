@@ -1,6 +1,6 @@
 use document;
-use document::YamlNodeData;
-use ffi;
+use document::{YamlNode, YamlNodeData};
+use ffi::YamlScalarStyle;
 use error::YamlMark;
 
 use std::num::FromStrRadix;
@@ -14,9 +14,9 @@ pub trait YamlConstructor<T, E> {
 
     fn construct<'r>(&self, node: document::YamlNode<'r>) -> Result<T, E> {
         match node {
-            document::YamlScalarNode(scalar) => self.construct_scalar(scalar),
-            document::YamlSequenceNode(sequence) => self.construct_sequence(sequence),
-            document::YamlMappingNode(mapping) => self.construct_mapping(mapping)
+            YamlNode::YamlScalarNode(scalar) => self.construct_scalar(scalar),
+            YamlNode::YamlSequenceNode(sequence) => self.construct_sequence(sequence),
+            YamlNode::YamlMappingNode(mapping) => self.construct_mapping(mapping)
         }
     }
 }
@@ -140,57 +140,57 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
         let mark = scalar.start_mark();
 
         match scalar.style() {
-            ffi::YamlPlainScalarStyle => {
+            YamlScalarStyle::YamlPlainScalarStyle => {
                 match bin_int.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 2))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 2))),
                     None => ()
                 };
                 match oct_int.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 8))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 8))),
                     None => ()
                 };
                 match hex_int.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlInteger(parse_int(caps.at(1), caps.at(2), 16))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 16))),
                     None => ()
                 };
 
                 if dec_int.is_match(value.as_slice()) {
-                    return Ok(YamlInteger(parse_int("", value.as_slice(), 10)));
+                    return Ok(YamlStandardData::YamlInteger(parse_int("", value.as_slice(), 10)));
                 }
 
                 match float_pattern.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlFloat(parse_float(caps.at(1), caps.at(2)))),
+                    Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(caps.at(1), caps.at(2)))),
                     None => ()
                 };
 
                 if pos_inf.is_match(value.as_slice()) {
-                    Ok(YamlFloat(f64::INFINITY))
+                    Ok(YamlStandardData::YamlFloat(f64::INFINITY))
                 } else if neg_inf.is_match(value.as_slice()) {
-                    Ok(YamlFloat(f64::NEG_INFINITY))
+                    Ok(YamlStandardData::YamlFloat(f64::NEG_INFINITY))
                 } else if nan.is_match(value.as_slice()) {
-                    Ok(YamlFloat(f64::NAN))
+                    Ok(YamlStandardData::YamlFloat(f64::NAN))
                 } else if null.is_match(value.as_slice()) {
-                    Ok(YamlNull)
+                    Ok(YamlStandardData::YamlNull)
                 } else if true_pattern.is_match(value.as_slice()) {
-                    Ok(YamlBool(true))
+                    Ok(YamlStandardData::YamlBool(true))
                 } else if false_pattern.is_match(value.as_slice()) {
-                    Ok(YamlBool(false))
+                    Ok(YamlStandardData::YamlBool(false))
                 } else {
-                    Ok(YamlString(value))
+                    Ok(YamlStandardData::YamlString(value))
                 }
             },
-            ffi::YamlDoubleQuotedScalarStyle => {
-                YamlStandardConstructor::parse_double_quoted(value.as_slice(), &mark).map(YamlString)
+            YamlScalarStyle::YamlDoubleQuotedScalarStyle => {
+                YamlStandardConstructor::parse_double_quoted(value.as_slice(), &mark).map(YamlStandardData::YamlString)
             },
             _ => {
-                Ok(YamlString(value))
+                Ok(YamlStandardData::YamlString(value))
             }
         }
     }
 
     fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, String> {
         let res:Result<Vec<YamlStandardData>, String> = sequence.values().map(|node| { self.construct(node) }).collect();
-        res.map(|list| YamlSequence(list))
+        res.map(|list| YamlStandardData::YamlSequence(list))
     }
 
     fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, String> {
@@ -204,17 +204,18 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
             }
         });
         let res:Result<Vec<(YamlStandardData, YamlStandardData)>, String> = pairs.collect();
-        res.map(YamlMapping)
+        res.map(YamlStandardData::YamlMapping)
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::YamlStandardData::*;
     use parser::{YamlParser, YamlByteParser};
     use std::f64;
     use std::num::FloatMath;
-    use ffi::YamlUtf8Encoding;
-    use constructor::{YamlConstructor, YamlStandardConstructor, YamlInteger, YamlFloat, YamlBool, YamlNull, YamlString, YamlSequence};
+    use ffi::YamlEncoding::YamlUtf8Encoding;
+    use constructor::{YamlConstructor, YamlStandardConstructor};
 
     #[test]
     fn test_standard_constructor() {

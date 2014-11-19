@@ -1,5 +1,6 @@
 use ffi;
 use ffi::{YamlEncoding, YamlSequenceStyle, YamlScalarStyle};
+use ffi::yaml_event_type_t::*;
 use std::mem;
 use std::ptr;
 
@@ -53,13 +54,13 @@ pub enum YamlEvent {
 impl YamlEvent {
     pub unsafe fn load(event: &ffi::yaml_event_t) -> YamlEvent {
         match event.event_type {
-            ffi::YAML_NO_EVENT => YamlNoEvent,
-            ffi::YAML_STREAM_START_EVENT => {
+            YAML_NO_EVENT => YamlEvent::YamlNoEvent,
+            YAML_STREAM_START_EVENT => {
                 let evt_data: &ffi::yaml_stream_start_event_t = mem::transmute(&event.data);
-                YamlStreamStartEvent(evt_data.encoding)
+                YamlEvent::YamlStreamStartEvent(evt_data.encoding)
             },
-            ffi::YAML_STREAM_END_EVENT => YamlStreamEndEvent,
-            ffi::YAML_DOCUMENT_START_EVENT => {
+            YAML_STREAM_END_EVENT => YamlEvent::YamlStreamEndEvent,
+            YAML_DOCUMENT_START_EVENT => {
                 let evt_data: &ffi::yaml_document_start_event_t = mem::transmute(&event.data);
                 let vsn_dir = if evt_data.version_directive == ptr::null() {
                     None
@@ -78,25 +79,25 @@ impl YamlEvent {
                 }
                 let implicit = evt_data.implicit != 0;
 
-                YamlDocumentStartEvent(vsn_dir, tag_dirs, implicit)
+                YamlEvent::YamlDocumentStartEvent(vsn_dir, tag_dirs, implicit)
             },
-            ffi::YAML_DOCUMENT_END_EVENT => {
+            YAML_DOCUMENT_END_EVENT => {
                 let evt_data: &ffi::yaml_document_end_event_t = mem::transmute(&event.data);
                 let implicit = evt_data.implicit != 0;
 
-                YamlDocumentEndEvent(implicit)
+                YamlEvent::YamlDocumentEndEvent(implicit)
             },
-            ffi::YAML_ALIAS_EVENT => {
+            YAML_ALIAS_EVENT => {
                 let evt_data: &ffi::yaml_alias_event_t = mem::transmute(&event.data);
                 let anchor = codecs::decode_c_str(evt_data.anchor).unwrap();
 
-                YamlAliasEvent(anchor)
+                YamlEvent::YamlAliasEvent(anchor)
             },
-            ffi::YAML_SCALAR_EVENT => {
+            YAML_SCALAR_EVENT => {
                 let evt_data: &ffi::yaml_scalar_event_t = mem::transmute(&event.data);
                 let value = codecs::decode_buf(evt_data.value, evt_data.length).unwrap();
 
-                YamlScalarEvent(YamlScalarParam {
+                YamlEvent::YamlScalarEvent(YamlScalarParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     value: value,
@@ -105,28 +106,28 @@ impl YamlEvent {
                     style: evt_data.style
                 })
             },
-            ffi::YAML_SEQUENCE_START_EVENT => {
+            YAML_SEQUENCE_START_EVENT => {
                 let evt_data: &ffi::yaml_sequence_start_event_t = mem::transmute(&event.data);
 
-                YamlSequenceStartEvent(YamlSequenceParam {
+                YamlEvent::YamlSequenceStartEvent(YamlSequenceParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })
             },
-            ffi::YAML_SEQUENCE_END_EVENT => YamlSequenceEndEvent,
-            ffi::YAML_MAPPING_START_EVENT => {
+            YAML_SEQUENCE_END_EVENT => YamlEvent::YamlSequenceEndEvent,
+            YAML_MAPPING_START_EVENT => {
                 let evt_data: &ffi::yaml_mapping_start_event_t = mem::transmute(&event.data);
 
-                YamlMappingStartEvent(YamlSequenceParam {
+                YamlEvent::YamlMappingStartEvent(YamlSequenceParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })
             },
-            ffi::YAML_MAPPING_END_EVENT => YamlMappingEndEvent
+            YAML_MAPPING_END_EVENT => YamlEvent::YamlMappingEndEvent
         }
     }
 }

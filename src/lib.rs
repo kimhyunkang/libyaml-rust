@@ -52,7 +52,7 @@ pub fn version() -> (int, int, int) {
 }
 
 pub fn parse_bytes_utf8(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
-    parse_bytes(bytes, ffi::YamlUtf8Encoding)
+    parse_bytes(bytes, ffi::YamlEncoding::YamlUtf8Encoding)
 }
 
 pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
@@ -68,7 +68,7 @@ pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<Yaml
 }
 
 pub fn parse_io_utf8(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
-    parse_io(reader, ffi::YamlUtf8Encoding)
+    parse_io(reader, ffi::YamlEncoding::YamlUtf8Encoding)
 }
 
 pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
@@ -87,7 +87,7 @@ pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<
 mod test {
     use std::mem;
     use std::io;
-    use constructor::{YamlInteger, YamlSequence};
+    use constructor::YamlStandardData::*;
 
     #[test]
     fn test_version_string() {

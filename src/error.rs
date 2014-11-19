@@ -1,5 +1,7 @@
 use std::error::Error;
 use ffi;
+use ffi::YamlErrorType;
+use ffi::YamlErrorType::*;
 
 #[deriving(Show, PartialEq)]
 pub struct YamlMark {
@@ -38,7 +40,7 @@ pub enum YamlError {
 impl YamlError {
     pub fn kind<'a>(&'a self) -> &'a ffi::YamlErrorType {
         match self {
-            &YamlParserError {
+            &YamlError::YamlParserError {
                 kind: ref k,
                 problem: _,
                 byte_offset: _,
@@ -46,7 +48,7 @@ impl YamlError {
                 context: _,
                 context_mark: _
             } => k,
-            &YamlEmitterError {
+            &YamlError::YamlEmitterError {
                 kind: ref k,
                 problem: _,
             } => k,
@@ -55,7 +57,7 @@ impl YamlError {
 
     pub fn problem<'a>(&'a self) -> &'a Option<String> {
         match self {
-            &YamlParserError {
+            &YamlError::YamlParserError {
                 kind: _,
                 problem: ref p,
                 byte_offset: _,
@@ -63,7 +65,7 @@ impl YamlError {
                 context: _,
                 context_mark: _
             } => p,
-            &YamlEmitterError {
+            &YamlError::YamlEmitterError {
                 kind: _,
                 problem: ref p,
             } => p,
@@ -73,15 +75,15 @@ impl YamlError {
 
 impl Error for YamlError {
     fn description(&self) -> &str {
-        match self.kind() {
-            &ffi::YAML_NO_ERROR => "No error is produced",
-            &ffi::YAML_MEMORY_ERROR => "Cannot allocate or reallocate a block of memory",
-            &ffi::YAML_READER_ERROR => "Cannot read or decode the input stream",
-            &ffi::YAML_SCANNER_ERROR => "Cannot scan the input stream",
-            &ffi::YAML_PARSER_ERROR => "Cannot parse the input stream",
-            &ffi::YAML_COMPOSER_ERROR => "Cannot compose a YAML document",
-            &ffi::YAML_WRITER_ERROR => "Cannot write to the output stream",
-            &ffi::YAML_EMITTER_ERROR => "Cannot emit a YAML stream",
+        match *self.kind() {
+            YAML_NO_ERROR => "No error is produced",
+            YAML_MEMORY_ERROR => "Cannot allocate or reallocate a block of memory",
+            YAML_READER_ERROR => "Cannot read or decode the input stream",
+            YAML_SCANNER_ERROR => "Cannot scan the input stream",
+            YAML_PARSER_ERROR => "Cannot parse the input stream",
+            YAML_COMPOSER_ERROR => "Cannot compose a YAML document",
+            YAML_WRITER_ERROR => "Cannot write to the output stream",
+            YAML_EMITTER_ERROR => "Cannot emit a YAML stream",
         }
     }
 

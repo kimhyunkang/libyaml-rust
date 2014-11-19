@@ -2,6 +2,7 @@ use libc;
 
 use codecs;
 use ffi;
+use ffi::yaml_node_type_t::*;
 use error::YamlMark;
 use event::{YamlVersionDirective, YamlTagDirective};
 
@@ -80,24 +81,24 @@ impl YamlDocument {
         }
         let node = &*node_ptr;
         match node.node_type {
-            ffi::YAML_SCALAR_NODE => {
+            YAML_SCALAR_NODE => {
                 let scalar_data: &ffi::yaml_scalar_node_t = mem::transmute(&node.data);
-                YamlScalarNode(YamlScalarData {
+                YamlNode::YamlScalarNode(YamlScalarData {
                     node: node,
                     data: scalar_data
                 })
             },
-            ffi::YAML_SEQUENCE_NODE => {
+            YAML_SEQUENCE_NODE => {
                 let sequence_data: &ffi::yaml_sequence_node_t = mem::transmute(&node.data);
-                YamlSequenceNode(YamlSequenceData {
+                YamlNode::YamlSequenceNode(YamlSequenceData {
                     doc: self,
                     node: node,
                     data: sequence_data
                 })
             },
-            ffi::YAML_MAPPING_NODE => {
+            YAML_MAPPING_NODE => {
                 let mapping_data: &ffi::yaml_sequence_node_t = mem::transmute(&node.data);
-                YamlMappingNode(YamlMappingData {
+                YamlNode::YamlMappingNode(YamlMappingData {
                     doc: self,
                     node: node,
                     data: mapping_data

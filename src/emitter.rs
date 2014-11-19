@@ -1,5 +1,5 @@
 use ffi;
-use error::{YamlError, YamlEmitterError};
+use error::YamlError;
 use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
@@ -54,7 +54,7 @@ impl<'r> YamlEmitter<'r> {
     fn get_error(&self) -> YamlError {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
-            YamlEmitterError {
+            YamlError::YamlEmitterError {
                 kind: emitter_mem.error,
                 problem: CString::new(emitter_mem.problem, false).as_str().map(|s| s.to_string())
             }
@@ -375,7 +375,9 @@ extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc
 mod test {
     use std::io::MemWriter;
     use emitter::YamlEmitter;
-    use ffi::{YamlUtf8Encoding, YamlPlainScalarStyle, YamlFlowSequenceStyle};
+    use ffi::YamlEncoding::YamlUtf8Encoding;
+    use ffi::YamlScalarStyle::*;
+    use ffi::YamlSequenceStyle::*;
 
     #[test]
     #[allow(unused_must_use)]

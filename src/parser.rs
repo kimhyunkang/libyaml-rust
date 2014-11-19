@@ -1,8 +1,8 @@
 use libc;
 
 use ffi;
-use error::{YamlError, YamlParserError, YamlMark};
-use event::{YamlEvent, YamlNoEvent};
+use error::{YamlError, YamlMark};
+use event::YamlEvent;
 use document::{YamlDocument};
 use codecs;
 
@@ -18,7 +18,7 @@ impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P>
     fn next(&mut self) -> Option<Result<YamlEvent, YamlError>> {
         unsafe {
             match self.parser.parse_event() {
-                Some(YamlNoEvent) => None,
+                Some(YamlEvent::YamlNoEvent) => None,
                 Some(evt) => Some(Ok(evt)),
                 None => Some(Err(self.parser.base_parser_ref().get_error()))
             }
@@ -133,7 +133,7 @@ impl YamlBaseParser {
     }
 
     unsafe fn get_error(&self) -> YamlError {
-        YamlParserError {
+        YamlError::YamlParserError {
             kind: self.parser_mem.error,
             problem: codecs::decode_c_str(self.parser_mem.problem as *const ffi::yaml_char_t),
             byte_offset: self.parser_mem.problem_offset as uint,
@@ -215,25 +215,29 @@ impl<'r> YamlIoParser<'r> {
 
 #[cfg(test)]
 mod test {
-    use event::*;
-    use document;
+    use event::{YamlEvent, YamlSequenceParam, YamlScalarParam};
+    use event::YamlEvent::*;
+    use document::{YamlDocument, YamlNode};
     use parser;
     use parser::YamlParser;
     use error::YamlError;
-    use ffi;
+    use ffi::YamlErrorType;
+    use ffi::YamlEncoding::*;
+    use ffi::YamlScalarStyle::*;
+    use ffi::YamlSequenceStyle::*;
     use std::io;
 
     #[test]
     fn test_byte_parser() {
         let data = "[1, 2, 3]";
-        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
+        let parser = parser::YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
         let expected = Ok(vec![
-            YamlStreamStartEvent(ffi::YamlUtf8Encoding),
+            YamlStreamStartEvent(YamlUtf8Encoding),
             YamlDocumentStartEvent(None, vec![], true),
-            YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: YamlFlowSequenceStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -248,14 +252,14 @@ mod test {
     fn test_io_parser() {
         let data = "[1, 2, 3]";
         let mut reader = io::BufReader::new(data.as_bytes());
-        let parser = parser::YamlIoParser::init(&mut reader, ffi::YamlUtf8Encoding);
+        let parser = parser::YamlIoParser::init(&mut reader, YamlUtf8Encoding);
         let expected = Ok(vec![
-            YamlStreamStartEvent(ffi::YamlUtf8Encoding),
+            YamlStreamStartEvent(YamlUtf8Encoding),
             YamlDocumentStartEvent(None, vec![], true),
-            YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlSequenceStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: YamlFlowSequenceStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "3".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
             YamlSequenceEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -269,15 +273,15 @@ mod test {
     #[test]
     fn test_byte_parser_mapping() {
         let data = "{\"a\": 1, \"b\":2}";
-        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
+        let parser = parser::YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
         let expected = Ok(vec![
-            YamlStreamStartEvent(ffi::YamlUtf8Encoding),
+            YamlStreamStartEvent(YamlUtf8Encoding),
             YamlDocumentStartEvent(None, vec![], true),
-            YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: ffi::YamlFlowSequenceStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "a".to_string(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "b".to_string(), plain_implicit: false, quoted_implicit: true, style: ffi::YamlDoubleQuotedScalarStyle}),
-            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: ffi::YamlPlainScalarStyle}),
+            YamlMappingStartEvent(YamlSequenceParam{anchor: None, tag: None, implicit: true, style: YamlFlowSequenceStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "a".to_string(), plain_implicit: false, quoted_implicit: true, style: YamlDoubleQuotedScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "1".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "b".to_string(), plain_implicit: false, quoted_implicit: true, style: YamlDoubleQuotedScalarStyle}),
+            YamlScalarEvent(YamlScalarParam{anchor: None, tag: None, value: "2".to_string(), plain_implicit: true, quoted_implicit: false, style: YamlPlainScalarStyle}),
             YamlMappingEndEvent,
             YamlDocumentEndEvent(true),
             YamlStreamEndEvent
@@ -291,15 +295,15 @@ mod test {
     #[test]
     fn test_parser_error() {
         let data = "\"ab";
-        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
+        let parser = parser::YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
         let mut stream = parser.parse();
 
         let stream_start = stream.next();
-        assert_eq!(Some(Ok(YamlStreamStartEvent(ffi::YamlUtf8Encoding))), stream_start);
+        assert_eq!(Some(Ok(YamlStreamStartEvent(YamlUtf8Encoding))), stream_start);
 
         let stream_err = stream.next();
         match stream_err {
-            Some(Err(err)) => assert_eq!(&ffi::YAML_SCANNER_ERROR, err.kind()),
+            Some(Err(err)) => assert_eq!(&YamlErrorType::YAML_SCANNER_ERROR, err.kind()),
             evt => panic!("unexpected result: {}", evt),
         }
     }
@@ -307,16 +311,16 @@ mod test {
     #[test]
     fn test_document() {
         let data = "[1, 2, 3]";
-        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
-        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
+        let parser = parser::YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
+        let docs_res:Result<Vec<Box<YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
             Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
-                Some(document::YamlSequenceNode(seq)) => {
+                Some(YamlNode::YamlSequenceNode(seq)) => {
                     let values = seq.values().map(|node| {
                         match node {
-                            document::YamlScalarNode(scalar) => scalar.get_value(),
+                            YamlNode::YamlScalarNode(scalar) => scalar.get_value(),
                             _ => panic!("unexpected scalar")
                         }
                     }).collect();
@@ -330,21 +334,21 @@ mod test {
     #[test]
     fn test_mapping_document() {
         let data = "{\"a\": 1, \"b\": 2}";
-        let parser = parser::YamlByteParser::init(data.as_bytes(), ffi::YamlUtf8Encoding);
-        let docs_res:Result<Vec<Box<document::YamlDocument>>, YamlError> = parser.load().collect();
+        let parser = parser::YamlByteParser::init(data.as_bytes(), YamlUtf8Encoding);
+        let docs_res:Result<Vec<Box<YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
             Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
-                Some(document::YamlMappingNode(seq)) => {
+                Some(YamlNode::YamlMappingNode(seq)) => {
                     let values = seq.pairs().map(|(key, value)| {
                         (
                             match key {
-                                document::YamlScalarNode(scalar) => scalar.get_value(),
+                                YamlNode::YamlScalarNode(scalar) => scalar.get_value(),
                                 _ => panic!("unexpected scalar")
                             },
                             match value {
-                                document::YamlScalarNode(scalar) => scalar.get_value(),
+                                YamlNode::YamlScalarNode(scalar) => scalar.get_value(),
                                 _ => panic!("unexpected scalar")
                             }
                         )
