@@ -6,7 +6,6 @@
 
 #![feature(globs)]
 #![feature(phase)]
-#![feature(struct_variant)]
 
 extern crate libc;
 
