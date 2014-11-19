@@ -15,6 +15,7 @@ extern crate regex;
 
 use parser::YamlParser;
 use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
+use error::YamlError;
 
 pub mod ffi;
 pub mod error;
@@ -51,36 +52,30 @@ pub fn version() -> (int, int, int) {
     (c_major as int, c_minor as int, c_patch as int)
 }
 
-pub fn parse_bytes_utf8(bytes: &[u8]) -> Result<Vec<YamlStandardData>, String> {
+pub fn parse_bytes_utf8(bytes: &[u8]) -> Result<Vec<YamlStandardData>, YamlError> {
     parse_bytes(bytes, ffi::YamlEncoding::YamlUtf8Encoding)
 }
 
-pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
+pub fn parse_bytes(bytes: &[u8], encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, YamlError> {
     let parser = parser::YamlByteParser::init(bytes, encoding);
     let ctor = YamlStandardConstructor::new();
 
-    parser.load().map(|doc_res| {
-        match doc_res {
-            Err(e) => Err(e.to_string()),
-            Ok(doc) => ctor.construct(doc.root().unwrap())
-        }
-    }).collect()
+    parser.load().map(|doc_res|
+        doc_res.and_then(|doc| ctor.construct(doc.root().unwrap()))
+    ).collect()
 }
 
-pub fn parse_io_utf8(reader: &mut Reader) -> Result<Vec<YamlStandardData>, String> {
+pub fn parse_io_utf8(reader: &mut Reader) -> Result<Vec<YamlStandardData>, YamlError> {
     parse_io(reader, ffi::YamlEncoding::YamlUtf8Encoding)
 }
 
-pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, String> {
+pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<YamlStandardData>, YamlError> {
     let parser = parser::YamlIoParser::init(reader, encoding);
     let ctor = YamlStandardConstructor::new();
 
-    parser.load().map(|doc_res| {
-        match doc_res {
-            Err(e) => Err(e.to_string()),
-            Ok(doc) => ctor.construct(doc.root().unwrap())
-        }
-    }).collect()
+    parser.load().map(|doc_res|
+        doc_res.and_then(|doc| ctor.construct(doc.root().unwrap()))
+    ).collect()
 }
 
 #[cfg(test)]

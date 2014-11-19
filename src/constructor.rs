@@ -1,7 +1,7 @@
 use document;
 use document::{YamlNode, YamlNodeData};
-use ffi::YamlScalarStyle;
-use error::YamlMark;
+use ffi::{YamlErrorType, YamlScalarStyle};
+use error::{YamlMark, YamlError, YamlErrorContext};
 
 use std::num::FromStrRadix;
 use std::f64;
@@ -35,12 +35,28 @@ pub enum YamlStandardData {
 
 pub struct YamlStandardConstructor;
 
+fn standard_error(message: String, mark: &YamlMark) -> YamlError {
+    let context = YamlErrorContext {
+        byte_offset: mark.index,
+        problem_mark: *mark.clone(),
+        context: None,
+        context_mark: *mark.clone()
+    };
+
+    YamlError {
+        kind: YamlErrorType::YAML_PARSER_ERROR,
+        problem: Some(message),
+        io_error: None,
+        context: Some(context)
+    }
+}
+
 impl YamlStandardConstructor {
     pub fn new() -> YamlStandardConstructor {
         YamlStandardConstructor
     }
 
-    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, String> {
+    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, YamlError> {
         let mut buf = String::new();
         let mut it = value.chars();
 
@@ -50,7 +66,10 @@ impl YamlStandardConstructor {
                 Some('\\') => {
                     // escape sequences
                     match it.next() {
-                        None => return Err(format!("invalid escape sequence at line {:u}, col {:u}", mark.line, mark.column)),
+                        None => return Err(standard_error(
+                                    "unexpected end of string after escape".to_string(),
+                                    mark
+                                )),
                         Some('0') => buf.push('\x00'),              // null
                         Some('a') => buf.push('\x07'),              // ASCII bell
                         Some('b') => buf.push('\x08'),              // backspace
@@ -66,23 +85,32 @@ impl YamlStandardConstructor {
                         Some('P') => buf.push('\u2029'),            // unicode paragraph separator
                         Some('x') => {
                             let code:String = it.take(2).collect();
-                            match parse_escape_sequence(code, 2) {
+                            match parse_escape_sequence(code.as_slice(), 2) {
                                 Some(c) => buf.push(c),
-                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                                None => return Err(standard_error(
+                                            format!("invalid escape sequence {}", code),
+                                            mark
+                                        ))
                             }
                         },
                         Some('u') => {
                             let code:String = it.take(4).collect();
-                            match parse_escape_sequence(code, 4) {
+                            match parse_escape_sequence(code.as_slice(), 4) {
                                 Some(c) => buf.push(c),
-                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                                None => return Err(standard_error(
+                                            format!("invalid escape sequence {}", code),
+                                            mark
+                                        ))
                             }
                         },
                         Some('U') => {
                             let code:String = it.take(8).collect();
-                            match parse_escape_sequence(code, 8) {
+                            match parse_escape_sequence(code.as_slice(), 8) {
                                 Some(c) => buf.push(c),
-                                None => return Err(format!("invalid x escape sequence at line {:u}, col {:u}", mark.line, mark.column))
+                                None => return Err(standard_error(
+                                            format!("invalid escape sequence {}", code),
+                                            mark
+                                        ))
                             }
                         },
                         Some(c) => buf.push(c)
@@ -94,8 +122,8 @@ impl YamlStandardConstructor {
     }
 }
 
-fn parse_escape_sequence(rep: String, expected_len: uint) -> Option<char> {
-    match FromStrRadix::from_str_radix(rep.as_slice(), 16) {
+fn parse_escape_sequence(rep: &str, expected_len: uint) -> Option<char> {
+    match FromStrRadix::from_str_radix(rep, 16) {
         Some(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
@@ -122,8 +150,8 @@ fn parse_float(sign: &str, data: &str) -> f64 {
     }
 }
 
-impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
-    fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, String> {
+impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
+    fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, YamlError> {
         let dec_int = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
         let oct_int = regex!(r"^([-+]?)0o?([0-7_]+)$");
         let hex_int = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
@@ -188,12 +216,12 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
         }
     }
 
-    fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, String> {
-        let res:Result<Vec<YamlStandardData>, String> = sequence.values().map(|node| { self.construct(node) }).collect();
+    fn construct_sequence(&self, sequence: document::YamlSequenceData) -> Result<YamlStandardData, YamlError> {
+        let res:Result<Vec<YamlStandardData>, YamlError> = sequence.values().map(|node| { self.construct(node) }).collect();
         res.map(|list| YamlStandardData::YamlSequence(list))
     }
 
-    fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, String> {
+    fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, YamlError> {
         let mut pairs = mapping.pairs().map(|(key_node, value_node)| {
             match self.construct(key_node) {
                 Ok(key) => match self.construct(value_node) {
@@ -203,7 +231,7 @@ impl YamlConstructor<YamlStandardData, String> for YamlStandardConstructor {
                 Err(e) => Err(e)
             }
         });
-        let res:Result<Vec<(YamlStandardData, YamlStandardData)>, String> = pairs.collect();
+        let res:Result<Vec<(YamlStandardData, YamlStandardData)>, YamlError> = pairs.collect();
         res.map(YamlStandardData::YamlMapping)
     }
 }
