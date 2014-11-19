@@ -1,13 +1,13 @@
 use libc;
 
 use ffi;
-use error::{YamlError, YamlMark};
+use error::{YamlError, YamlErrorContext, YamlMark};
 use event::YamlEvent;
 use document::{YamlDocument};
 use codecs;
 
 use std::mem;
-use std::io;
+use std::io::{IoError, EndOfFile};
 use std::c_vec::CVec;
 
 pub struct YamlEventStream<P> {
@@ -20,7 +20,7 @@ impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P>
             match self.parser.parse_event() {
                 Some(YamlEvent::YamlNoEvent) => None,
                 Some(evt) => Some(Ok(evt)),
-                None => Some(Err(self.parser.base_parser_ref().get_error()))
+                None => Some(Err(self.parser.get_error()))
             }
         }
     }
@@ -39,7 +39,7 @@ impl<P:YamlParser> Iterator<Result<Box<YamlDocument>, YamlError>> for YamlDocume
                 } else {
                     Some(Ok(doc))
                 },
-                None => Some(Err(self.parser.base_parser_ref().get_error()))
+                None => Some(Err(self.parser.get_error()))
             }
         }
     }
@@ -59,6 +59,7 @@ impl Drop for InternalEvent {
 
 pub trait YamlParser {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser;
+    unsafe fn get_error(&mut self) -> YamlError;
 
     unsafe fn parse_event(&mut self) -> Option<YamlEvent> {
         let mut event = InternalEvent {
@@ -96,11 +97,12 @@ extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc:
             },
             Err(err) => {
                 match err.kind {
-                    io::EndOfFile => {
+                    EndOfFile => {
                         *size_read = 0;
                         return 1;
                     },
                     _ => {
+                        parser.io_error = Some(err);
                         return 0;
                     }
                 }
@@ -132,14 +134,19 @@ impl YamlBaseParser {
         ffi::yaml_parser_parse(&mut self.parser_mem, event) != 0
     }
 
-    unsafe fn get_error(&self) -> YamlError {
-        YamlError::YamlParserError {
-            kind: self.parser_mem.error,
-            problem: codecs::decode_c_str(self.parser_mem.problem as *const ffi::yaml_char_t),
+    unsafe fn build_error(&self) -> YamlError {
+        let context = YamlErrorContext {
             byte_offset: self.parser_mem.problem_offset as uint,
             problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),
             context: codecs::decode_c_str(self.parser_mem.context as *const ffi::yaml_char_t),
             context_mark: YamlMark::conv(&self.parser_mem.context_mark),
+        };
+
+        YamlError {
+            kind: self.parser_mem.error,
+            problem: codecs::decode_c_str(self.parser_mem.problem as *const ffi::yaml_char_t),
+            io_error: None,
+            context: Some(context)
         }
     }
 }
@@ -159,6 +166,10 @@ pub struct YamlByteParser<'r> {
 impl<'r> YamlParser for YamlByteParser<'r> {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
         &mut self.base_parser
+    }
+
+    unsafe fn get_error(&mut self) -> YamlError {
+        self.base_parser.build_error()
     }
 }
 
@@ -184,11 +195,18 @@ impl<'r> YamlByteParser<'r> {
 pub struct YamlIoParser<'r> {
     base_parser: YamlBaseParser,
     reader: &'r mut Reader+'r,
+    io_error: Option<IoError>,
 }
 
 impl<'r> YamlParser for YamlIoParser<'r> {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
         &mut self.base_parser
+    }
+
+    unsafe fn get_error(&mut self) -> YamlError {
+        let mut error = self.base_parser.build_error();
+        mem::swap(&mut (error.io_error), &mut (self.io_error));
+        return error;
     }
 }
 
@@ -197,7 +215,8 @@ impl<'r> YamlIoParser<'r> {
         unsafe {
             let mut parser = box YamlIoParser {
                 base_parser: YamlBaseParser::new(),
-                reader: reader
+                reader: reader,
+                io_error: None
             };
 
             if !parser.base_parser.initialize() {
@@ -303,7 +322,7 @@ mod test {
 
         let stream_err = stream.next();
         match stream_err {
-            Some(Err(err)) => assert_eq!(&YamlErrorType::YAML_SCANNER_ERROR, err.kind()),
+            Some(Err(err)) => assert_eq!(YamlErrorType::YAML_SCANNER_ERROR, err.kind),
             evt => panic!("unexpected result: {}", evt),
         }
     }

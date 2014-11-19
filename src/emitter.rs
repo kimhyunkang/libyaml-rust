@@ -6,6 +6,7 @@ use std::ptr;
 use std::mem;
 use std::c_vec::CVec;
 use std::c_str::CString;
+use std::io::IoError;
 use libc;
 
 pub struct YamlBaseEmitter {
@@ -30,7 +31,8 @@ impl Drop for YamlBaseEmitter {
 
 pub struct YamlEmitter<'r> {
     base_emitter: YamlBaseEmitter,
-    writer: &'r mut Writer+'r
+    writer: &'r mut Writer+'r,
+    io_error: Option<IoError>,
 }
 
 impl<'r> YamlEmitter<'r> {
@@ -38,7 +40,8 @@ impl<'r> YamlEmitter<'r> {
         unsafe {
             let mut emitter = box YamlEmitter {
                 base_emitter: YamlBaseEmitter::new(),
-                writer: writer
+                writer: writer,
+                io_error: None
             };
 
             if ffi::yaml_emitter_initialize(&mut emitter.base_emitter.emitter_mem) == 0 {
@@ -51,13 +54,19 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    fn get_error(&self) -> YamlError {
+    fn get_error(&mut self) -> YamlError {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
-            YamlError::YamlEmitterError {
+            let mut error = YamlError {
                 kind: emitter_mem.error,
-                problem: CString::new(emitter_mem.problem, false).as_str().map(|s| s.to_string())
-            }
+                problem: CString::new(emitter_mem.problem, false).as_str().map(|s| s.to_string()),
+                io_error: None,
+                context: None
+            };
+
+            mem::swap(&mut self.io_error, &mut error.io_error);
+
+            return error;
         }
     }
 
@@ -366,7 +375,10 @@ extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc
         let emitter = &mut *data;
         match emitter.writer.write(buf.as_slice()) {
             Ok(()) => 1,
-            Err(_) => 0
+            Err(err) => {
+                emitter.io_error = Some(err);
+                0
+            }
         }
     }
 }

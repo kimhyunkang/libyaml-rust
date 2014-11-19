@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::io::IoError;
 use ffi;
 use ffi::YamlErrorType;
 use ffi::YamlErrorType::*;
@@ -21,61 +22,24 @@ impl YamlMark {
 }
 
 #[deriving(Show, PartialEq)]
-pub enum YamlError {
-    YamlParserError {
-        kind: ffi::YamlErrorType,
-        problem: Option<String>,
-        byte_offset: uint,
-        problem_mark: YamlMark,
-        context: Option<String>,
-        context_mark: YamlMark
-    },
-
-    YamlEmitterError {
-        kind: ffi::YamlErrorType,
-        problem: Option<String>
-    }
+pub struct YamlErrorContext {
+    pub byte_offset: uint,
+    pub problem_mark: YamlMark,
+    pub context: Option<String>,
+    pub context_mark: YamlMark
 }
 
-impl YamlError {
-    pub fn kind<'a>(&'a self) -> &'a ffi::YamlErrorType {
-        match self {
-            &YamlError::YamlParserError {
-                kind: ref k,
-                problem: _,
-                byte_offset: _,
-                problem_mark: _,
-                context: _,
-                context_mark: _
-            } => k,
-            &YamlError::YamlEmitterError {
-                kind: ref k,
-                problem: _,
-            } => k,
-        }
-    }
-
-    pub fn problem<'a>(&'a self) -> &'a Option<String> {
-        match self {
-            &YamlError::YamlParserError {
-                kind: _,
-                problem: ref p,
-                byte_offset: _,
-                problem_mark: _,
-                context: _,
-                context_mark: _
-            } => p,
-            &YamlError::YamlEmitterError {
-                kind: _,
-                problem: ref p,
-            } => p,
-        }
-    }
+#[deriving(Show, PartialEq)]
+pub struct YamlError {
+    pub kind: ffi::YamlErrorType,
+    pub problem: Option<String>,
+    pub io_error: Option<IoError>,
+    pub context: Option<YamlErrorContext>
 }
 
 impl Error for YamlError {
     fn description(&self) -> &str {
-        match *self.kind() {
+        match self.kind {
             YAML_NO_ERROR => "No error is produced",
             YAML_MEMORY_ERROR => "Cannot allocate or reallocate a block of memory",
             YAML_READER_ERROR => "Cannot read or decode the input stream",
@@ -88,10 +52,13 @@ impl Error for YamlError {
     }
 
     fn detail(&self) -> Option<String> {
-        self.problem().clone()
+        self.problem.clone()
     }
 
     fn cause(&self) -> Option<&Error> {
-        None
+        match self.io_error {
+            None => None,
+            Some(ref e) => Some(e as &Error)
+        }
     }
 }
