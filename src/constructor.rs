@@ -1,7 +1,7 @@
 use document;
 use document::YamlNodeData;
 use ffi;
-use parser::YamlMark;
+use error::YamlMark;
 
 use std::num::FromStrRadix;
 use std::f64;

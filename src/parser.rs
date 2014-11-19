@@ -1,6 +1,7 @@
 use libc;
 
 use ffi;
+use error::{YamlError, YamlParserError, YamlMark};
 use event::{YamlEvent, YamlNoEvent};
 use document::{YamlDocument};
 use codecs;
@@ -8,33 +9,6 @@ use codecs;
 use std::mem;
 use std::io;
 use std::c_vec::CVec;
-
-#[deriving(Show, PartialEq)]
-pub struct YamlMark {
-    pub index: uint,
-    pub line: uint,
-    pub column: uint
-}
-
-impl YamlMark {
-    pub fn conv(mark: &ffi::yaml_mark_t) -> YamlMark {
-        YamlMark {
-            index: mark.index as uint,
-            line: mark.line as uint,
-            column: mark.column as uint
-        }
-    }
-}
-
-#[deriving(Show, PartialEq)]
-pub struct YamlError {
-    kind: ffi::YamlErrorType,
-    problem: Option<String>,
-    byte_offset: uint,
-    problem_mark: YamlMark,
-    context: Option<String>,
-    context_mark: YamlMark,
-}
 
 pub struct YamlEventStream<P> {
     parser: Box<P>,
@@ -159,7 +133,7 @@ impl YamlBaseParser {
     }
 
     unsafe fn get_error(&self) -> YamlError {
-        YamlError {
+        YamlParserError {
             kind: self.parser_mem.error,
             problem: codecs::decode_c_str(self.parser_mem.problem as *const ffi::yaml_char_t),
             byte_offset: self.parser_mem.problem_offset as uint,
@@ -244,7 +218,8 @@ mod test {
     use event::*;
     use document;
     use parser;
-    use parser::{YamlParser, YamlError};
+    use parser::YamlParser;
+    use error::YamlError;
     use ffi;
     use std::io;
 
@@ -324,7 +299,7 @@ mod test {
 
         let stream_err = stream.next();
         match stream_err {
-            Some(Err(err)) => assert_eq!(ffi::YamlScannerError, err.kind),
+            Some(Err(err)) => assert_eq!(&ffi::YAML_SCANNER_ERROR, err.kind()),
             evt => panic!("unexpected result: {}", evt),
         }
     }

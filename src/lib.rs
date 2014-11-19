@@ -6,6 +6,7 @@
 
 #![feature(globs)]
 #![feature(phase)]
+#![feature(struct_variant)]
 
 extern crate libc;
 
@@ -17,6 +18,7 @@ use parser::YamlParser;
 use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
 
 pub mod ffi;
+pub mod error;
 pub mod event;
 pub mod parser;
 pub mod emitter;

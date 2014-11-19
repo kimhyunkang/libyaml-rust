@@ -16,24 +16,24 @@ pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *const
 #[deriving(Show, PartialEq)]
 pub enum YamlErrorType {
     /** No error is produced. */
-    YamlNoError,
+    YAML_NO_ERROR,
 
     /** Cannot allocate or reallocate a block of memory. */
-    YamlMemoryError,
+    YAML_MEMORY_ERROR,
 
     /** Cannot read or decode the input stream. */
-    YamlReaderError,
+    YAML_READER_ERROR,
     /** Cannot scan the input stream. */
-    YamlScannerError,
+    YAML_SCANNER_ERROR,
     /** Cannot parse the input stream. */
-    YamlParserError,
+    YAML_PARSER_ERROR,
     /** Cannot compose a YAML document. */
-    YamlComposerError,
+    YAML_COMPOSER_ERROR,
 
     /** Cannot write to the output stream. */
-    YamlWriterError,
+    YAML_WRITER_ERROR,
     /** Cannot emit a YAML stream. */
-    YamlEmitterError
+    YAML_EMITTER_ERROR
 }
 
 #[deriving(Show, PartialEq)]

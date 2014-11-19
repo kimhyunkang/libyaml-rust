@@ -2,7 +2,7 @@ use libc;
 
 use codecs;
 use ffi;
-use parser::YamlMark;
+use error::YamlMark;
 use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
