@@ -398,7 +398,7 @@ mod test {
         {
             let mut emitter = YamlEmitter::init(&mut writer);
             emitter.emit_stream(YamlUtf8Encoding, |e| {
-                e.emit_document(None, [], true, |e| {
+                e.emit_document(None, &[], true, |e| {
                     e.emit_sequence(None, None, true, YamlFlowSequenceStyle, |e| {
                         try!(e.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle));
                         e.emit_scalar_event(None, None, "2", true, false, YamlPlainScalarStyle)
@@ -417,7 +417,7 @@ mod test {
         {
             let mut emitter = YamlEmitter::init(&mut writer);
             emitter.emit_stream(YamlUtf8Encoding, |e| {
-                e.emit_document(None, [], true, |e| {
+                e.emit_document(None, &[], true, |e| {
                     e.emit_mapping(None, None, true, YamlFlowSequenceStyle, |e| {
                         try!(e.emit_scalar_event(None, None, "a", true, false, YamlPlainScalarStyle));
                         try!(e.emit_scalar_event(None, None, "1", true, false, YamlPlainScalarStyle));

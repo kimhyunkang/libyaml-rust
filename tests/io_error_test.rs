@@ -51,7 +51,7 @@ fn write_to_bad_stream() -> Result<(), YamlError> {
     let mut mock_writer = MockRW::new();
     let mut emitter = YamlEmitter::init(&mut mock_writer);
     try!(emitter.emit_stream(YamlEncoding::YamlUtf8Encoding, |stream|
-        stream.emit_document(None, [], true, |doc| {
+        stream.emit_document(None, &[], true, |doc| {
             doc.emit_scalar_event(None, None, "a", true, false, YamlScalarStyle::YamlPlainScalarStyle)
         })
     ));
