@@ -77,7 +77,8 @@ impl<'r> YamlEmitter<'r> {
     {
         try!(self.emit_stream_start_event(encoding));
         try!(f(self));
-        self.emit_stream_end_event()
+        try!(self.emit_stream_end_event());
+        self.flush()
     }
 
     fn emit_stream_start_event(&mut self, encoding: ffi::YamlEncoding) -> Result<(), YamlError> {
