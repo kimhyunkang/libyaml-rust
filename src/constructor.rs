@@ -6,6 +6,7 @@ use error::{YamlMark, YamlError, YamlErrorContext};
 use std::num::FromStrRadix;
 use std::f64;
 use std::char;
+use regex::Regex;
 
 pub trait YamlConstructor<T, E> {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<T, E>;
@@ -150,58 +151,58 @@ fn parse_float(sign: &str, data: &str) -> f64 {
     }
 }
 
+static DEC_INT:Regex = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
+static OCT_INT:Regex = regex!(r"^([-+]?)0o?([0-7_]+)$");
+static HEX_INT:Regex = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
+static BIN_INT:Regex = regex!(r"^([-+]?)0b([0-1_]+)$");
+static FLOAT_PATTERN:Regex = regex!(r"^([-+]?)(\.[0-9]+|[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?)$");
+static POS_INF:Regex = regex!(r"^[+]?(\.inf|\.Inf|\.INF)$");
+static NEG_INF:Regex = regex!(r"^-(\.inf|\.Inf|\.INF)$");
+static NAN_PATTERN:Regex = regex!(r"^(\.nan|\.NaN|\.NAN)$");
+static NULL_PATTERN:Regex = regex!(r"^(null|Null|NULL|~)$");
+static TRUE_PATTERN:Regex = regex!(r"^(true|True|TRUE|yes|Yes|YES)$");
+static FALSE_PATTERN:Regex = regex!(r"^(false|False|FALSE|no|No|NO)$");
+
 impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, YamlError> {
-        let dec_int = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
-        let oct_int = regex!(r"^([-+]?)0o?([0-7_]+)$");
-        let hex_int = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
-        let bin_int = regex!(r"^([-+]?)0b([0-1_]+)$");
-        let float_pattern = regex!(r"^([-+]?)(\.[0-9]+|[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?)$");
-        let pos_inf = regex!(r"^[+]?(\.inf|\.Inf|\.INF)$");
-        let neg_inf = regex!(r"^-(\.inf|\.Inf|\.INF)$");
-        let nan = regex!(r"^(\.nan|\.NaN|\.NAN)$");
-        let null = regex!(r"^(null|Null|NULL|~)$");
-        let true_pattern = regex!(r"^(true|True|TRUE|yes|Yes|YES)$");
-        let false_pattern = regex!(r"^(false|False|FALSE|no|No|NO)$");
-
         let value = scalar.get_value();
         let mark = scalar.start_mark();
 
         match scalar.style() {
             YamlScalarStyle::YamlPlainScalarStyle => {
-                match bin_int.captures(value.as_slice()) {
+                match BIN_INT.captures(value.as_slice()) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 2))),
                     None => ()
                 };
-                match oct_int.captures(value.as_slice()) {
+                match OCT_INT.captures(value.as_slice()) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 8))),
                     None => ()
                 };
-                match hex_int.captures(value.as_slice()) {
+                match HEX_INT.captures(value.as_slice()) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 16))),
                     None => ()
                 };
 
-                if dec_int.is_match(value.as_slice()) {
+                if DEC_INT.is_match(value.as_slice()) {
                     return Ok(YamlStandardData::YamlInteger(parse_int("", value.as_slice(), 10)));
                 }
 
-                match float_pattern.captures(value.as_slice()) {
+                match FLOAT_PATTERN.captures(value.as_slice()) {
                     Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(caps.at(1), caps.at(2)))),
                     None => ()
                 };
 
-                if pos_inf.is_match(value.as_slice()) {
+                if POS_INF.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlFloat(f64::INFINITY))
-                } else if neg_inf.is_match(value.as_slice()) {
+                } else if NEG_INF.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlFloat(f64::NEG_INFINITY))
-                } else if nan.is_match(value.as_slice()) {
+                } else if NAN_PATTERN.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlFloat(f64::NAN))
-                } else if null.is_match(value.as_slice()) {
+                } else if NULL_PATTERN.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlNull)
-                } else if true_pattern.is_match(value.as_slice()) {
+                } else if TRUE_PATTERN.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlBool(true))
-                } else if false_pattern.is_match(value.as_slice()) {
+                } else if FALSE_PATTERN.is_match(value.as_slice()) {
                     Ok(YamlStandardData::YamlBool(false))
                 } else {
                     Ok(YamlStandardData::YamlString(value))
