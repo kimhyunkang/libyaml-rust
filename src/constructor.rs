@@ -56,7 +56,7 @@ impl YamlStandardConstructor {
         YamlStandardConstructor
     }
 
-    pub fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, YamlError> {
+    fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, YamlError> {
         let mut buf = String::new();
         let mut it = value.chars();
 
