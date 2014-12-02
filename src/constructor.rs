@@ -223,7 +223,7 @@ impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
     }
 
     fn construct_mapping(&self, mapping: document::YamlMappingData) -> Result<YamlStandardData, YamlError> {
-        let mut pairs = mapping.pairs().map(|(key_node, value_node)| {
+        let pairs = mapping.pairs().map(|(key_node, value_node)| {
             match self.construct(key_node) {
                 Ok(key) => match self.construct(value_node) {
                     Ok(value) => Ok((key, value)),
