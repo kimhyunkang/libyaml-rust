@@ -3,3 +3,11 @@ name = "yaml"
 version = "0.0.3"
 authors = [ "kimhyunkang@gmail.com" ]
 build = "build.rs"
+
+description = "LibYAML binding for Rust"
+repository = "https://github.com/kimhyunkang/libyaml-rust"
+readme = "README.md"
+
+keywords = ["yaml", "libyaml"]
+
+license = "MIT"
