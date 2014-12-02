@@ -1,5 +1,5 @@
 [package]
 name = "yaml"
-version = "0.0.2"
+version = "0.0.3"
 authors = [ "kimhyunkang@gmail.com" ]
 build = "build.rs"
