@@ -1,7 +1,5 @@
 #![crate_name = "yaml"]
 
-#![comment = "LibYAML bindings for Rust"] 
-#![license = "MIT"]
 #![crate_type = "lib"]
 
 #![feature(globs)]
