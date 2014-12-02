@@ -2,12 +2,13 @@
 
 extern crate yaml;
 
-use yaml::constructor::{YamlStandardData, YamlMapping, YamlSequence, YamlString, YamlInteger, YamlFloat};
+use yaml::constructor::YamlStandardData;
+use yaml::ffi::YamlEncoding;
 use std::os;
 use std::io::{File, BufferedReader};
 
 fn match_utf8(filename: &str, expected: YamlStandardData) {
-    match_file(yaml::ffi::YamlUtf8Encoding, filename, expected);
+    match_file(YamlEncoding::YamlUtf8Encoding, filename, expected);
 }
 
 fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
@@ -27,37 +28,37 @@ fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlS
 
 macro_rules! ystr(
     ($e: expr) => (
-        YamlString($e.to_string())
+        YamlStandardData::YamlString($e.to_string())
     )
 )
 
 macro_rules! yint(
     ($e: expr) => (
-        YamlInteger($e)
+        YamlStandardData::YamlInteger($e)
     )
 )
 
 macro_rules! yfloat(
     ($e: expr) => (
-        YamlFloat($e)
+        YamlStandardData::YamlFloat($e)
     )
 )
 
 macro_rules! yseq(
     ($($e:expr),*) => (
-        YamlSequence(vec![$(($e),)*])
+        YamlStandardData::YamlSequence(vec![$(($e),)*])
     )
 )
 
 macro_rules! ymap(
     ($($k:expr : $v:expr),*) => (
-        YamlMapping(vec![$((ystr!($k), $v),)*])
+        YamlStandardData::YamlMapping(vec![$((ystr!($k), $v),)*])
     )
 )
 
 macro_rules! y_cmp_map(
     ($($k:expr : $v:expr),*) => (
-        YamlMapping(vec![$(($k, $v),)*])
+        YamlStandardData::YamlMapping(vec![$(($k, $v),)*])
     )
 )
 
@@ -169,14 +170,14 @@ fn multi_line_scalar() {
 
 #[test]
 fn utf16le() {
-    match_file(yaml::ffi::YamlUtf16LeEncoding, "utf16le.yml",
+    match_file(YamlEncoding::YamlUtf16LeEncoding, "utf16le.yml",
                yseq![ystr!("Hello"), ystr!("世界")]
     )
 }
 
 #[test]
 fn utf16be() {
-    match_file(yaml::ffi::YamlUtf16BeEncoding, "utf16be.yml",
+    match_file(YamlEncoding::YamlUtf16BeEncoding, "utf16be.yml",
                yseq![ystr!("Hello"), ystr!("世界")]
     )
 }
