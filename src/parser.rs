@@ -337,7 +337,7 @@ mod test {
             Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlSequenceNode(seq)) => {
-                    let values = seq.values().map(|node| {
+                    let values:Vec<String> = seq.values().map(|node| {
                         match node {
                             YamlNode::YamlScalarNode(scalar) => scalar.get_value(),
                             _ => panic!("unexpected scalar")
@@ -360,7 +360,7 @@ mod test {
             Err(e) => panic!("unexpected result: {}", e),
             Ok(docs) => match docs.as_slice().head().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlMappingNode(seq)) => {
-                    let values = seq.pairs().map(|(key, value)| {
+                    let values:Vec<(String, String)> = seq.pairs().map(|(key, value)| {
                         (
                             match key {
                                 YamlNode::YamlScalarNode(scalar) => scalar.get_value(),
