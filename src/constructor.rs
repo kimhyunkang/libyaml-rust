@@ -34,14 +34,15 @@ pub enum YamlStandardData {
     YamlMapping(Vec<(YamlStandardData, YamlStandardData)>),
 }
 
+#[deriving(Copy)]
 pub struct YamlStandardConstructor;
 
 fn standard_error(message: String, mark: &YamlMark) -> YamlError {
     let context = YamlErrorContext {
         byte_offset: mark.index,
-        problem_mark: *mark.clone(),
+        problem_mark: *mark,
         context: None,
-        context_mark: *mark.clone()
+        context_mark: *mark,
     };
 
     YamlError {

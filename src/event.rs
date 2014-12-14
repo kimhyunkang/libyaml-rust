@@ -6,7 +6,7 @@ use std::ptr;
 
 use codecs;
 
-#[deriving(Show, PartialEq)]
+#[deriving(Show, PartialEq, Copy)]
 pub struct YamlVersionDirective {
     pub major: int,
     pub minor: int,

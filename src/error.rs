@@ -4,7 +4,7 @@ use ffi;
 use ffi::YamlErrorType;
 use ffi::YamlErrorType::*;
 
-#[deriving(Show, PartialEq)]
+#[deriving(Show, PartialEq, Copy)]
 pub struct YamlMark {
     pub index: uint,
     pub line: uint,
