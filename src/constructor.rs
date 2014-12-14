@@ -81,10 +81,10 @@ impl YamlStandardConstructor {
                         Some('f') => buf.push('\x0c'),              // form feed
                         Some('r') => buf.push('\x0d'),              // carriage return
                         Some('e') => buf.push('\x1b'),              // ASCII escape
-                        Some('N') => buf.push('\u0085'),            // unicode next line
-                        Some('_') => buf.push('\u00a0'),            // unicode non-breaking space
-                        Some('L') => buf.push('\u2028'),            // unicode line separator
-                        Some('P') => buf.push('\u2029'),            // unicode paragraph separator
+                        Some('N') => buf.push('\u{85}'),            // unicode next line
+                        Some('_') => buf.push('\u{a0}'),            // unicode non-breaking space
+                        Some('L') => buf.push('\u{2028}'),          // unicode line separator
+                        Some('P') => buf.push('\u{2029}'),          // unicode paragraph separator
                         Some('x') => {
                             let code:String = it.take(2).collect();
                             match parse_escape_sequence(code.as_slice(), 2) {

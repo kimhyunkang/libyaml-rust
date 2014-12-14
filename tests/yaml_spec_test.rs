@@ -150,7 +150,7 @@ fn plain_scalar() {
 fn quoted_scalar() {
     match_utf8("quoted_scalar.yml",
     ymap!{
-        "unicode": ystr!("Sosa did fine.\u263A"),
+        "unicode": ystr!("Sosa did fine.\u{263A}"),
         "control": ystr!("\x081998\t1999\t2000\n"),
         "hexesc":  ystr!("\x13\x10 is \r\n"),
         "single": ystr!(r#""Howdy!" he cried."#),
