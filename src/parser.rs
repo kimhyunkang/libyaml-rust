@@ -164,7 +164,7 @@ pub struct YamlByteParser<'r> {
 }
 
 impl<'r> YamlParser for YamlByteParser<'r> {
-    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
+    unsafe fn base_parser_ref<'a>(&'a mut self) -> &'a mut YamlBaseParser {
         &mut self.base_parser
     }
 
@@ -199,7 +199,7 @@ pub struct YamlIoParser<'r> {
 }
 
 impl<'r> YamlParser for YamlIoParser<'r> {
-    unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser {
+    unsafe fn base_parser_ref<'a>(&'a mut self) -> &'a mut YamlBaseParser {
         &mut self.base_parser
     }
 
@@ -211,7 +211,7 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 }
 
 impl<'r> YamlIoParser<'r> {
-    pub fn init<'r>(reader: &'r mut Reader, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'r>> {
+    pub fn init<'a>(reader: &'a mut Reader, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'a>> {
         unsafe {
             let mut parser = box YamlIoParser {
                 base_parser: YamlBaseParser::new(),

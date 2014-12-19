@@ -167,7 +167,7 @@ pub struct YamlScalarData<'r> {
 }
 
 impl<'r> YamlNodeData for YamlScalarData<'r> {
-    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+    unsafe fn internal_node<'a>(&'a self) -> &'a ffi::yaml_node_t {
         self.node
     }
 }
@@ -189,7 +189,7 @@ pub struct YamlSequenceData<'r> {
 }
 
 impl<'r> YamlNodeData for YamlSequenceData<'r> {
-    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+    unsafe fn internal_node<'a>(&'a self) -> &'a ffi::yaml_node_t {
         self.node
     }
 }
@@ -233,7 +233,7 @@ pub struct YamlMappingData<'r> {
 }
 
 impl<'r> YamlNodeData for YamlMappingData<'r> {
-    unsafe fn internal_node<'r>(&'r self) -> &'r ffi::yaml_node_t {
+    unsafe fn internal_node<'a>(&'a self) -> &'a ffi::yaml_node_t {
         self.node
     }
 }

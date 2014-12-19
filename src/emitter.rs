@@ -36,7 +36,7 @@ pub struct YamlEmitter<'r> {
 }
 
 impl<'r> YamlEmitter<'r> {
-    pub fn init<'r>(writer: &'r mut Writer) -> Box<YamlEmitter<'r>> {
+    pub fn init<'a>(writer: &'a mut Writer) -> Box<YamlEmitter<'a>> {
         unsafe {
             let mut emitter = box YamlEmitter {
                 base_emitter: YamlBaseEmitter::new(),
