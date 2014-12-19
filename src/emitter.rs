@@ -146,8 +146,8 @@ impl<'r> YamlEmitter<'r> {
         }).collect();
         let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
-                handle: tuple.ref0().as_ptr(),
-                prefix: tuple.ref1().as_ptr(),
+                handle: tuple.0.as_ptr(),
+                prefix: tuple.1.as_ptr(),
             }
         }).collect();
         let tag_dir_start = c_tag_dirs.as_ptr();
