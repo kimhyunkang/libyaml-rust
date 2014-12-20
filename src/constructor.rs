@@ -172,15 +172,18 @@ impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
         match scalar.style() {
             YamlScalarStyle::YamlPlainScalarStyle => {
                 match BIN_INT.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 2))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
+                                caps.at(1).unwrap(), caps.at(2).unwrap(), 2))),
                     None => ()
                 };
                 match OCT_INT.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 8))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
+                                caps.at(1).unwrap(), caps.at(2).unwrap(), 8))),
                     None => ()
                 };
                 match HEX_INT.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(caps.at(1), caps.at(2), 16))),
+                    Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
+                                caps.at(1).unwrap(), caps.at(2).unwrap(), 16))),
                     None => ()
                 };
 
@@ -189,7 +192,8 @@ impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
                 }
 
                 match FLOAT_PATTERN.captures(value.as_slice()) {
-                    Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(caps.at(1), caps.at(2)))),
+                    Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(
+                                caps.at(1).unwrap(), caps.at(2).unwrap()))),
                     None => ()
                 };
 
