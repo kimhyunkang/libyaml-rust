@@ -26,41 +26,41 @@ fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlS
     }
 }
 
-macro_rules! ystr(
+macro_rules! ystr{
     ($e: expr) => (
         YamlStandardData::YamlString($e.to_string())
     )
-)
+}
 
-macro_rules! yint(
+macro_rules! yint{
     ($e: expr) => (
         YamlStandardData::YamlInteger($e)
     )
-)
+}
 
-macro_rules! yfloat(
+macro_rules! yfloat{
     ($e: expr) => (
         YamlStandardData::YamlFloat($e)
     )
-)
+}
 
-macro_rules! yseq(
+macro_rules! yseq{
     ($($e:expr),*) => (
         YamlStandardData::YamlSequence(vec![$(($e),)*])
     )
-)
+}
 
-macro_rules! ymap(
+macro_rules! ymap{
     ($($k:expr : $v:expr),*) => (
         YamlStandardData::YamlMapping(vec![$((ystr!($k), $v),)*])
     )
-)
+}
 
-macro_rules! y_cmp_map(
+macro_rules! y_cmp_map{
     ($($k:expr : $v:expr),*) => (
         YamlStandardData::YamlMapping(vec![$(($k, $v),)*])
     )
-)
+}
 
 #[test]
 fn sequence_of_scalars() {
