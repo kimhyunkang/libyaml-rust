@@ -144,7 +144,7 @@ fn parse_int(sign: &str, data: &str, radix: uint) -> int {
 }
 
 fn parse_float(sign: &str, data: &str) -> f64 {
-    let unsigned:f64 = from_str(data).unwrap();
+    let unsigned:f64 = data.parse().unwrap();
     if sign == "-" {
         return -unsigned;
     } else {
