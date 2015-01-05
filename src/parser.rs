@@ -14,7 +14,9 @@ pub struct YamlEventStream<P> {
     parser: Box<P>,
 }
 
-impl<P:YamlParser> Iterator<Result<YamlEvent, YamlError>> for YamlEventStream<P> {
+impl<P:YamlParser> Iterator for YamlEventStream<P> {
+    type Item = Result<YamlEvent, YamlError>;
+
     fn next(&mut self) -> Option<Result<YamlEvent, YamlError>> {
         unsafe {
             match self.parser.parse_event() {
@@ -30,7 +32,9 @@ pub struct YamlDocumentStream<P> {
     parser: Box<P>,
 }
 
-impl<P:YamlParser> Iterator<Result<Box<YamlDocument>, YamlError>> for YamlDocumentStream<P> {
+impl<P:YamlParser> Iterator for YamlDocumentStream<P> {
+    type Item = Result<Box<YamlDocument>, YamlError>;
+
     fn next(&mut self) -> Option<Result<Box<YamlDocument>, YamlError>> {
         unsafe {
             match YamlDocument::parser_load(&mut self.parser.base_parser_ref().parser_mem) {

@@ -210,7 +210,9 @@ pub struct YamlSequenceIter<'r> {
     ptr: *const libc::c_int
 }
 
-impl<'r> Iterator<YamlNode<'r>> for YamlSequenceIter<'r> {
+impl<'r> Iterator for YamlSequenceIter<'r> {
+    type Item = YamlNode<'r>;
+
     fn next(&mut self) -> Option<YamlNode<'r>> {
         if self.ptr == self.top {
             None
@@ -254,7 +256,9 @@ pub struct YamlMappingIter<'r> {
     ptr: *const ffi::yaml_node_pair_t
 }
 
-impl<'r> Iterator<(YamlNode<'r>, YamlNode<'r>)> for YamlMappingIter<'r> {
+impl<'r> Iterator for YamlMappingIter<'r> {
+    type Item = (YamlNode<'r>, YamlNode<'r>);
+
     fn next(&mut self) -> Option<(YamlNode<'r>, YamlNode<'r>)> {
         if self.ptr == self.top {
             None

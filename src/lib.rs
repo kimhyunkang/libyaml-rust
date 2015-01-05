@@ -4,6 +4,7 @@
 
 #![feature(globs)]
 #![feature(phase)]
+#![feature(associated_types)]
 
 extern crate libc;
 
