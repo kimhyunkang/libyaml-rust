@@ -8,7 +8,7 @@ use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
 use std::mem;
-use std::c_str::CString;
+use std::c_str::{CString, ToCStr};
 
 pub struct YamlDocument {
     document_mem: ffi::yaml_document_t

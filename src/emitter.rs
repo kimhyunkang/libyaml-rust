@@ -5,7 +5,7 @@ use event::{YamlVersionDirective, YamlTagDirective};
 use std::ptr;
 use std::mem;
 use std::c_vec::CVec;
-use std::c_str::CString;
+use std::c_str::{CString, ToCStr};
 use std::io::IoError;
 use libc;
 
