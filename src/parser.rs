@@ -61,7 +61,7 @@ impl Drop for InternalEvent {
     }
 }
 
-pub trait YamlParser {
+pub trait YamlParser: Sized {
     unsafe fn base_parser_ref<'r>(&'r mut self) -> &'r mut YamlBaseParser;
     unsafe fn get_error(&mut self) -> YamlError;
 
