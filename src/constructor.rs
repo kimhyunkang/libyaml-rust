@@ -22,8 +22,7 @@ pub trait YamlConstructor<T, E> {
     }
 }
 
-#[deriving(PartialEq)]
-#[deriving(Show)]
+#[derive(PartialEq, Show)]
 pub enum YamlStandardData {
     YamlInteger(int),
     YamlFloat(f64),
@@ -34,7 +33,7 @@ pub enum YamlStandardData {
     YamlMapping(Vec<(YamlStandardData, YamlStandardData)>),
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct YamlStandardConstructor;
 
 fn standard_error(message: String, mark: &YamlMark) -> YamlError {

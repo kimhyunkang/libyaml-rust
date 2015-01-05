@@ -4,7 +4,7 @@ use ffi;
 use ffi::YamlErrorType;
 use ffi::YamlErrorType::*;
 
-#[deriving(Show, PartialEq, Copy)]
+#[derive(Show, PartialEq, Copy)]
 pub struct YamlMark {
     pub index: uint,
     pub line: uint,
@@ -21,7 +21,7 @@ impl YamlMark {
     }
 }
 
-#[deriving(Show, PartialEq)]
+#[derive(Show, PartialEq)]
 pub struct YamlErrorContext {
     pub byte_offset: uint,
     pub problem_mark: YamlMark,
@@ -29,7 +29,7 @@ pub struct YamlErrorContext {
     pub context_mark: YamlMark
 }
 
-#[deriving(Show, PartialEq)]
+#[derive(Show, PartialEq)]
 pub struct YamlError {
     pub kind: ffi::YamlErrorType,
     pub problem: Option<String>,
