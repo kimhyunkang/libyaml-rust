@@ -1,5 +1,3 @@
-#![feature(macro_rules)]
-
 extern crate yaml;
 
 use yaml::constructor::YamlStandardData;
