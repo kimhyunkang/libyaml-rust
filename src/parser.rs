@@ -8,7 +8,7 @@ use codecs;
 
 use std::mem;
 use std::io::{IoError, EndOfFile};
-use std::c_vec::CVec;
+use std::slice;
 
 pub struct YamlEventStream<P> {
     parser: Box<P>,
@@ -92,9 +92,9 @@ pub trait YamlParser: Sized {
 
 extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc::size_t, size_read: *mut libc::size_t) -> libc::c_int {
     unsafe {
-        let mut buf = CVec::new(buffer, size as uint);
+        let mut buf = slice::from_raw_mut_buf(&buffer, size as uint);
         let parser = &mut *data;
-        match parser.reader.read(buf.as_mut_slice()) {
+        match parser.reader.read(buf) {
             Ok(size) => {
                 *size_read = size as libc::size_t;
                 return 1;

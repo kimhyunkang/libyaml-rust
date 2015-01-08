@@ -2,10 +2,11 @@ use ffi;
 use error::YamlError;
 use event::{YamlVersionDirective, YamlTagDirective};
 
+use std::str;
+use std::slice;
 use std::ptr;
 use std::mem;
-use std::c_vec::CVec;
-use std::c_str::{CString, ToCStr};
+use std::ffi::{c_str_to_bytes, CString};
 use std::io::IoError;
 use libc;
 
@@ -57,9 +58,10 @@ impl<'r> YamlEmitter<'r> {
     fn get_error(&mut self) -> YamlError {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
+            let c_problem = c_str_to_bytes(&emitter_mem.problem);
             let mut error = YamlError {
                 kind: emitter_mem.error,
-                problem: CString::new(emitter_mem.problem, false).as_str().map(|s| s.to_string()),
+                problem: str::from_utf8(c_problem).map(|s| s.to_string()).ok(),
                 io_error: None,
                 context: None
             };
@@ -142,7 +144,7 @@ impl<'r> YamlEmitter<'r> {
         };
 
         let c_strs: Vec<(CString, CString)> = tag_directives.iter().map(|tag| {
-            (tag.handle.to_c_str(), tag.prefix.to_c_str())
+            (CString::from_slice(tag.handle.as_bytes()), CString::from_slice(tag.prefix.as_bytes()))
         }).collect();
         let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
@@ -186,7 +188,7 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_alias_event(&mut self, anchor: &str) -> Result<(), YamlError> {
-        let c_anchor = anchor.to_c_str();
+        let c_anchor = CString::from_slice(anchor.as_bytes());
 
         unsafe {
             let mut event = mem::uninitialized();
@@ -208,12 +210,12 @@ impl<'r> YamlEmitter<'r> {
         value: &str, plain_implicit: bool, quoted_implicit: bool,
         style: ffi::YamlScalarStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| { s.to_c_str() });
+        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| { s.to_c_str() });
+        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()
@@ -254,12 +256,12 @@ impl<'r> YamlEmitter<'r> {
     fn emit_sequence_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| { s.to_c_str() });
+        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| { s.to_c_str() });
+        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()
@@ -313,12 +315,12 @@ impl<'r> YamlEmitter<'r> {
     fn emit_mapping_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| { s.to_c_str() });
+        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| { s.to_c_str() });
+        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()
@@ -372,9 +374,9 @@ impl<'r> YamlEmitter<'r> {
 
 extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc::size_t) -> libc::c_int {
     unsafe {
-        let buf = CVec::new(buffer as *mut u8, size as uint);
+        let buf = slice::from_raw_buf(&buffer, size as uint);
         let emitter = &mut *data;
-        match emitter.writer.write(buf.as_slice()) {
+        match emitter.writer.write(buf) {
             Ok(()) => 1,
             Err(err) => {
                 emitter.io_error = Some(err);

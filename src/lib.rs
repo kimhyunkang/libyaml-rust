@@ -12,6 +12,9 @@ extern crate libc;
 extern crate regex_macros;
 extern crate regex;
 
+use std::str;
+use std::ffi::c_str_to_bytes;
+
 use parser::YamlParser;
 use constructor::{YamlStandardData, YamlStandardConstructor, YamlConstructor};
 use error::YamlError;
@@ -28,11 +31,9 @@ pub mod constructor;
 mod type_size;
 
 pub fn version_string() -> String {
-    let c_vsn = unsafe {
-        std::c_str::CString::new(ffi::yaml_get_version_string(), false)
-    };
-
-    c_vsn.as_str().unwrap().to_string()
+    unsafe {
+        str::from_utf8(c_str_to_bytes(&ffi::yaml_get_version_string())).unwrap().to_string()
+    }
 }
 
 pub fn version() -> (int, int, int) {

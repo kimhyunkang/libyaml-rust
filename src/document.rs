@@ -8,7 +8,7 @@ use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
 use std::mem;
-use std::c_str::{CString, ToCStr};
+use std::ffi::CString;
 
 pub struct YamlDocument {
     document_mem: ffi::yaml_document_t
@@ -48,7 +48,7 @@ impl YamlDocument {
         };
 
         let c_strs: Vec<(CString, CString)> = tag_directives.iter().map(|tag| {
-            (tag.handle.to_c_str(), tag.prefix.to_c_str())
+            (CString::from_slice(tag.handle.as_bytes()), CString::from_slice(tag.prefix.as_bytes()))
         }).collect();
         let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
             ffi::yaml_tag_directive_t {
