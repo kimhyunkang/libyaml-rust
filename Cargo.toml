@@ -11,3 +11,7 @@ readme = "README.md"
 keywords = ["yaml", "libyaml"]
 
 license = "MIT"
+
+[dependencies]
+regex = "~0.1.9"
+regex_macros = "~0.1.4"

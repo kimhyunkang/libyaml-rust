@@ -3,12 +3,12 @@
 #![crate_type = "lib"]
 
 #![feature(globs)]
-#![feature(phase)]
 #![feature(associated_types)]
+#![feature(plugin)]
 
 extern crate libc;
 
-#[phase(plugin)]
+#[plugin]
 extern crate regex_macros;
 extern crate regex;
 
