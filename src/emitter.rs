@@ -72,10 +72,8 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_stream(&mut self,
-                    encoding: ffi::YamlEncoding,
-                    f: |&mut YamlEmitter| -> Result<(), YamlError>)
-        -> Result<(), YamlError>
+    pub fn emit_stream<F>(&mut self, encoding: ffi::YamlEncoding, f: F) -> Result<(), YamlError>
+        where F: Fn(&mut YamlEmitter) -> Result<(), YamlError>
     {
         try!(self.emit_stream_start_event(encoding));
         try!(f(self));
@@ -115,12 +113,12 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_document(&mut self,
+    pub fn emit_document<F>(&mut self,
             version_directive: Option<YamlVersionDirective>,
             tag_directives: &[YamlTagDirective],
             implicit: bool,
-            f: |&mut YamlEmitter| -> Result<(), YamlError>)
-        -> Result<(), YamlError>
+            f: F) -> Result<(), YamlError> where
+        F: Fn(&mut YamlEmitter) -> Result<(), YamlError>
     {
         try!(self.emit_document_start_event(version_directive, tag_directives, implicit));
         try!(f(self));
@@ -243,10 +241,10 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_sequence(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+    pub fn emit_sequence<F>(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
             style: ffi::YamlSequenceStyle,
-            f: |&mut YamlEmitter| -> Result<(), YamlError>)
-        -> Result<(), YamlError>
+            f: F) -> Result<(), YamlError> where
+        F: Fn(&mut YamlEmitter) -> Result<(), YamlError>
     {
         try!(self.emit_sequence_start_event(anchor, tag, implicit, style));
         try!(f(self));
@@ -302,10 +300,10 @@ impl<'r> YamlEmitter<'r> {
         }
     }
 
-    pub fn emit_mapping(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
+    pub fn emit_mapping<F>(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
             style: ffi::YamlSequenceStyle,
-            f: |&mut YamlEmitter| -> Result<(), YamlError>)
-        -> Result<(), YamlError>
+            f: F) -> Result<(), YamlError> where
+        F: Fn(&mut YamlEmitter) -> Result<(), YamlError>
     {
         try!(self.emit_mapping_start_event(anchor, tag, implicit, style));
         try!(f(self));
