@@ -327,7 +327,7 @@ mod test {
         let stream_err = stream.next();
         match stream_err {
             Some(Err(err)) => assert_eq!(YamlErrorType::YAML_SCANNER_ERROR, err.kind),
-            evt => panic!("unexpected result: {}", evt),
+            evt => panic!("unexpected result: {:?}", evt),
         }
     }
 
@@ -338,7 +338,7 @@ mod test {
         let docs_res:Result<Vec<Box<YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => panic!("unexpected result: {}", e),
+            Err(e) => panic!("unexpected result: {:?}", e),
             Ok(docs) => match docs.as_slice().first().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlSequenceNode(seq)) => {
                     let values:Vec<String> = seq.values().map(|node| {
@@ -361,7 +361,7 @@ mod test {
         let docs_res:Result<Vec<Box<YamlDocument>>, YamlError> = parser.load().collect();
 
         match docs_res {
-            Err(e) => panic!("unexpected result: {}", e),
+            Err(e) => panic!("unexpected result: {:?}", e),
             Ok(docs) => match docs.as_slice().first().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlMappingNode(seq)) => {
                     let values:Vec<(String, String)> = seq.pairs().map(|(key, value)| {
