@@ -1,3 +1,6 @@
+// Allow unstable items until Rust hits 1.0
+#![allow(unstable)]
+
 extern crate yaml;
 
 use yaml::constructor::YamlStandardData;
