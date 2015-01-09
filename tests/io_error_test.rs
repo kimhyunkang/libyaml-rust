@@ -22,7 +22,7 @@ impl MockRW {
 }
 
 impl Reader for MockRW {
-    fn read(&mut self, _buf: &mut [u8]) -> IoResult<uint> {
+    fn read(&mut self, _buf: &mut [u8]) -> IoResult<usize> {
         Err(IoError {
             kind: IoErrorKind::OtherIoError,
             desc: "",
