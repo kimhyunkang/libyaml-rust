@@ -24,7 +24,7 @@ pub trait YamlConstructor<T, E> {
 
 #[derive(PartialEq, Show)]
 pub enum YamlStandardData {
-    YamlInteger(int),
+    YamlInteger(isize),
     YamlFloat(f64),
     YamlString(String),
     YamlNull,
@@ -123,14 +123,14 @@ impl YamlStandardConstructor {
     }
 }
 
-fn parse_escape_sequence(rep: &str, expected_len: uint) -> Option<char> {
+fn parse_escape_sequence(rep: &str, expected_len: usize) -> Option<char> {
     match FromStrRadix::from_str_radix(rep, 16) {
         Some(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
 }
 
-fn parse_int(sign: &str, data: &str, radix: uint) -> int {
+fn parse_int(sign: &str, data: &str, radix: usize) -> isize {
     let sign_flag = if sign == "-" {
             -1
         } else {
@@ -138,7 +138,7 @@ fn parse_int(sign: &str, data: &str, radix: uint) -> int {
         };
 
     let filtered:String = data.chars().filter(|&c| c != '_').collect();
-    let unsigned:int = FromStrRadix::from_str_radix(filtered.as_slice(), radix).unwrap();
+    let unsigned:isize = FromStrRadix::from_str_radix(filtered.as_slice(), radix).unwrap();
     return unsigned * sign_flag;
 }
 

@@ -8,8 +8,8 @@ use codecs;
 
 #[derive(Show, PartialEq, Copy)]
 pub struct YamlVersionDirective {
-    pub major: int,
-    pub minor: int,
+    pub major: isize,
+    pub minor: isize,
 }
 
 #[derive(Show, PartialEq)]
@@ -66,7 +66,7 @@ impl YamlEvent {
                     None
                 } else {
                     let c_vsn_dir: &ffi::yaml_version_directive_t = mem::transmute(evt_data.version_directive);
-                    Some(YamlVersionDirective { major: c_vsn_dir.major as int, minor: c_vsn_dir.minor as int })
+                    Some(YamlVersionDirective { major: c_vsn_dir.major as isize, minor: c_vsn_dir.minor as isize })
                 };
                 let mut tag_dirs = Vec::new();
                 let mut tag_ptr = evt_data.tag_directives.start;

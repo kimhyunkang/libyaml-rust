@@ -33,7 +33,7 @@ pub fn version_string() -> String {
     }
 }
 
-pub fn version() -> (int, int, int) {
+pub fn version() -> (isize, isize, isize) {
     let mut c_major: libc::c_int = 0;
     let mut c_minor: libc::c_int = 0;
     let mut c_patch: libc::c_int = 0;
@@ -46,7 +46,7 @@ pub fn version() -> (int, int, int) {
         );
     }
 
-    (c_major as int, c_minor as int, c_patch as int)
+    (c_major as isize, c_minor as isize, c_patch as isize)
 }
 
 pub fn parse_bytes_utf8(bytes: &[u8]) -> Result<Vec<YamlStandardData>, YamlError> {

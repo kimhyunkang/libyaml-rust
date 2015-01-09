@@ -6,24 +6,24 @@ use ffi::YamlErrorType::*;
 
 #[derive(Show, PartialEq, Copy)]
 pub struct YamlMark {
-    pub index: uint,
-    pub line: uint,
-    pub column: uint
+    pub index: usize,
+    pub line: usize,
+    pub column: usize
 }
 
 impl YamlMark {
     pub fn conv(mark: &ffi::yaml_mark_t) -> YamlMark {
         YamlMark {
-            index: mark.index as uint,
-            line: mark.line as uint,
-            column: mark.column as uint
+            index: mark.index as usize,
+            line: mark.line as usize,
+            column: mark.column as usize
         }
     }
 }
 
 #[derive(Show, PartialEq)]
 pub struct YamlErrorContext {
-    pub byte_offset: uint,
+    pub byte_offset: usize,
     pub problem_mark: YamlMark,
     pub context: Option<String>,
     pub context_mark: YamlMark

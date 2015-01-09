@@ -153,7 +153,7 @@ impl<'r> YamlEmitter<'r> {
         let tag_dir_start = c_tag_dirs.as_ptr();
         unsafe {
             let mut event = mem::uninitialized();
-            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as int);
+            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as isize);
             let c_implicit = if implicit { 1 } else { 0 };
 
             if ffi::yaml_document_start_event_initialize(&mut event, c_vsn_dir, tag_dir_start, tag_dir_end, c_implicit) == 0 {
@@ -372,7 +372,7 @@ impl<'r> YamlEmitter<'r> {
 
 extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc::size_t) -> libc::c_int {
     unsafe {
-        let buf = slice::from_raw_buf(&buffer, size as uint);
+        let buf = slice::from_raw_buf(&buffer, size as usize);
         let emitter = &mut *data;
         match emitter.writer.write(buf) {
             Ok(()) => 1,

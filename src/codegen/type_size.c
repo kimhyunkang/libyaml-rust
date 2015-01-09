@@ -78,15 +78,15 @@ int main()
     printf("}\n\n");
 
     printf("#[cfg(test)]\n");
-    printf("pub static YAML_PARSER_T_SIZE:uint = %lu;\n", sizeof(yaml_parser_t));
+    printf("pub static YAML_PARSER_T_SIZE:usize = %lu;\n", sizeof(yaml_parser_t));
     printf("#[cfg(test)]\n");
-    printf("pub static YAML_EMITTER_T_SIZE:uint = %lu;\n", sizeof(yaml_emitter_t));
+    printf("pub static YAML_EMITTER_T_SIZE:usize = %lu;\n", sizeof(yaml_emitter_t));
     printf("#[cfg(test)]\n");
-    printf("pub static YAML_EVENT_T_SIZE:uint = %lu;\n", sizeof(yaml_event_t));
+    printf("pub static YAML_EVENT_T_SIZE:usize = %lu;\n", sizeof(yaml_event_t));
     printf("#[cfg(test)]\n");
-    printf("pub static YAML_DOCUMENT_T_SIZE:uint = %lu;\n", sizeof(yaml_document_t));
+    printf("pub static YAML_DOCUMENT_T_SIZE:usize = %lu;\n", sizeof(yaml_document_t));
     printf("#[cfg(test)]\n");
-    printf("pub static YAML_NODE_T_SIZE:uint = %lu;\n", sizeof(yaml_node_t));
+    printf("pub static YAML_NODE_T_SIZE:usize = %lu;\n", sizeof(yaml_node_t));
 
     return 0;
 }

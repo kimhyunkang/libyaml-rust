@@ -64,7 +64,7 @@ impl YamlDocument {
                 document_mem: mem::uninitialized()
             };
 
-            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as int);
+            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as isize);
             if ffi::yaml_document_initialize(&mut document.document_mem, c_vsn_dir,
                 tag_dir_start, tag_dir_end, c_start_implicit, c_end_implicit) == 0
             {

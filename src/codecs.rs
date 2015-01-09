@@ -23,7 +23,7 @@ pub fn decode_buf(buf: *const ffi::yaml_char_t, length: libc::size_t) -> Option<
         None
     } else {
         unsafe {
-            str::from_utf8(slice::from_raw_buf(&buf, length as uint)).map(|s| { s.to_string() }).ok()
+            str::from_utf8(slice::from_raw_buf(&buf, length as usize)).map(|s| { s.to_string() }).ok()
         }
     }
 }

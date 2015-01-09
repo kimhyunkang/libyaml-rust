@@ -92,7 +92,7 @@ pub trait YamlParser: Sized {
 
 extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc::size_t, size_read: *mut libc::size_t) -> libc::c_int {
     unsafe {
-        let mut buf = slice::from_raw_mut_buf(&buffer, size as uint);
+        let mut buf = slice::from_raw_mut_buf(&buffer, size as usize);
         let parser = &mut *data;
         match parser.reader.read(buf) {
             Ok(size) => {
@@ -130,7 +130,7 @@ impl YamlBaseParser {
         ffi::yaml_parser_initialize(&mut self.parser_mem) != 0
     }
 
-    unsafe fn set_input_string(&mut self, input: *const u8, size: uint) {
+    unsafe fn set_input_string(&mut self, input: *const u8, size: usize) {
         ffi::yaml_parser_set_input_string(&mut self.parser_mem, input, size as libc::size_t);
     }
 
@@ -140,7 +140,7 @@ impl YamlBaseParser {
 
     unsafe fn build_error(&self) -> YamlError {
         let context = YamlErrorContext {
-            byte_offset: self.parser_mem.problem_offset as uint,
+            byte_offset: self.parser_mem.problem_offset as usize,
             problem_mark: YamlMark::conv(&self.parser_mem.problem_mark),
             context: codecs::decode_c_str(self.parser_mem.context as *const ffi::yaml_char_t),
             context_mark: YamlMark::conv(&self.parser_mem.context_mark),
