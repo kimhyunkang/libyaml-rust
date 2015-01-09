@@ -52,13 +52,13 @@ macro_rules! yseq{
 }
 
 macro_rules! ymap{
-    ($($k:expr : $v:expr),*) => (
+    ($($k:expr => $v:expr),*) => (
         YamlStandardData::YamlMapping(vec![$((ystr!($k), $v),)*])
     )
 }
 
 macro_rules! y_cmp_map{
-    ($($k:expr : $v:expr),*) => (
+    ($($k:expr => $v:expr),*) => (
         YamlStandardData::YamlMapping(vec![$(($k, $v),)*])
     )
 }
@@ -71,17 +71,17 @@ fn sequence_of_scalars() {
 #[test]
 fn scalar_mappings() {
     match_utf8("player_stat.yml", ymap!{
-                                    "hr": yint!(65),
-                                    "avg": yfloat!(0.278),
-                                    "rbi": yint!(147)
+                                    "hr" => yint!(65),
+                                    "avg" => yfloat!(0.278),
+                                    "rbi" => yint!(147)
                                 })
 }
 
 #[test]
 fn maps_of_sequences() {
     match_utf8("ball_clubs.yml", ymap!{
-                                    "american": yseq![ystr!("Boston Red Sox"), ystr!("Detroit Tigers"), ystr!("New York Yankees")],
-                                    "national": yseq![ystr!("New York Mets"), ystr!("Chicago Cubs"), ystr!("Atlanta Braves")]
+                                    "american" => yseq![ystr!("Boston Red Sox"), ystr!("Detroit Tigers"), ystr!("New York Yankees")],
+                                    "national" => yseq![ystr!("New York Mets"), ystr!("Chicago Cubs"), ystr!("Atlanta Braves")]
                                 })
 }
 
@@ -90,12 +90,12 @@ fn sequence_of_maps() {
     match_utf8("multiple_player_stat.yml",
     yseq![
         ymap!{
-            "name": ystr!("Mark McGwire"),
-            "hr": yint!(65)
+            "name" => ystr!("Mark McGwire"),
+            "hr" => yint!(65)
         },
         ymap!{
-            "name": ystr!("Sammy Sosa"),
-            "hr": yint!(63)
+            "name" => ystr!("Sammy Sosa"),
+            "hr" => yint!(63)
         }
     ])
 }
@@ -114,8 +114,8 @@ fn sequence_of_sequences() {
 fn mapping_of_mappings() {
     match_utf8("map_map.yml",
     ymap!{
-        "Mark McGwire": ymap!{ "hr": yint!(65) },
-        "Sammy Sosa": ymap!{ "hr": yint!(63) }
+        "Mark McGwire" => ymap!{ "hr" => yint!(65) },
+        "Sammy Sosa" => ymap!{ "hr" => yint!(63) }
     })
 }
 
@@ -123,8 +123,8 @@ fn mapping_of_mappings() {
 fn alias() {
     match_utf8("alias.yml",
     ymap!{
-        "hr": yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa")],
-        "rbi": yseq![ystr!("Sammy Sosa"), ystr!("Ken Griffey")]
+        "hr" => yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa")],
+        "rbi" => yseq![ystr!("Sammy Sosa"), ystr!("Ken Griffey")]
     })
 }
 
@@ -132,8 +132,8 @@ fn alias() {
 fn complex_keys() {
     match_utf8("complex_key.yml",
     y_cmp_map!{
-        yseq![ystr!("Detroit Tigers"), ystr!("Chicago Cubs")]: yseq![ystr!("2001-07-23")],
-        yseq![ystr!("New York Yankees"), ystr!("Atlanta Braves")]: yseq![ystr!("2001-07-02"), ystr!("2001-08-12"), ystr!("2001-08-14")]
+        yseq![ystr!("Detroit Tigers"), ystr!("Chicago Cubs")] => yseq![ystr!("2001-07-23")],
+        yseq![ystr!("New York Yankees"), ystr!("Atlanta Braves")] => yseq![ystr!("2001-07-02"), ystr!("2001-08-12"), ystr!("2001-08-14")]
     })
 }
 
@@ -151,12 +151,12 @@ fn plain_scalar() {
 fn quoted_scalar() {
     match_utf8("quoted_scalar.yml",
     ymap!{
-        "unicode": ystr!("Sosa did fine.\u{263A}"),
-        "control": ystr!("\x081998\t1999\t2000\n"),
-        "hexesc":  ystr!("\x13\x10 is \r\n"),
-        "single": ystr!(r#""Howdy!" he cried."#),
-        "quoted": ystr!(" # not a 'comment'."),
-        "tie-fighter": ystr!(r"|\-*-/|")
+        "unicode" => ystr!("Sosa did fine.\u{263A}"),
+        "control" => ystr!("\x081998\t1999\t2000\n"),
+        "hexesc" =>  ystr!("\x13\x10 is \r\n"),
+        "single" => ystr!(r#""Howdy!" he cried."#),
+        "quoted" => ystr!(" # not a 'comment'."),
+        "tie-fighter" => ystr!(r"|\-*-/|")
     })
 }
 
@@ -164,8 +164,8 @@ fn quoted_scalar() {
 fn multi_line_scalar() {
     match_utf8("multi_line_scalar.yml",
     ymap!{
-        "plain": ystr!("This unquoted scalar spans many lines."),
-        "quoted": ystr!("So does this quoted scalar.\n")
+        "plain" => ystr!("This unquoted scalar spans many lines."),
+        "quoted" => ystr!("So does this quoted scalar.\n")
     })
 }
 
