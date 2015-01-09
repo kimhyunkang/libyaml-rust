@@ -1,6 +1,7 @@
 #![crate_name = "yaml"]
 #![crate_type = "lib"]
 #![feature(plugin)]
+#![feature(box_syntax)]
 
 extern crate libc;
 
