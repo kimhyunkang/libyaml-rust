@@ -3,7 +3,6 @@
 
 int main()
 {
-    printf("extern crate libc;\n\n");
     printf("use libc::c_int;\n\n");
 
     printf("#[allow(non_camel_case_types)]\n");
