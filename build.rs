@@ -1,3 +1,5 @@
+#![allow(unstable)]
+
 use std::io::{Command, File, Truncate, Write};
 use std::os;
 
