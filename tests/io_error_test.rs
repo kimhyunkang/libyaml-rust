@@ -46,7 +46,7 @@ fn error_cause_test_read() {
     let mut mock_reader = MockRW::new();
     match yaml::parse_io_utf8(&mut mock_reader) {
         Ok(_) => panic!("Should return an error"),
-        Err(e) => assert_eq!(e.cause().and_then(|ioe| ioe.detail()), Some("mock reader".to_string()))
+        Err(e) => assert_eq!(e.cause().map(|ioe| format!("{}", ioe)), Some(" (mock reader)".to_string()))
     }
 }
 
@@ -65,6 +65,6 @@ fn write_to_bad_stream() -> Result<(), YamlError> {
 fn error_cause_test_write() {
     match write_to_bad_stream() {
         Ok(_) => panic!("Should return an error"),
-        Err(e) => assert_eq!(e.cause().and_then(|ioe| ioe.detail()), Some("mock writer".to_string()))
+        Err(e) => assert_eq!(e.cause().map(|ioe| format!("{}", ioe)), Some(" (mock writer)".to_string()))
     }
 }

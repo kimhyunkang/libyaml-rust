@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::io::IoError;
+use std::fmt;
 use ffi;
 use ffi::YamlErrorType;
 use ffi::YamlErrorType::*;
@@ -51,14 +52,19 @@ impl Error for YamlError {
         }
     }
 
-    fn detail(&self) -> Option<String> {
-        self.problem.clone()
-    }
-
     fn cause(&self) -> Option<&Error> {
         match self.io_error {
             None => None,
             Some(ref e) => Some(e as &Error)
+        }
+    }
+}
+
+impl fmt::Display for YamlError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.problem {
+            None => return Ok(()),
+            Some(ref s) => s.fmt(f)
         }
     }
 }
