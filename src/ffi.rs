@@ -13,7 +13,7 @@ pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u
 pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *const u8, size: size_t) -> c_int;
 
 #[repr(C)]
-#[derive(Show, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Copy)]
 pub enum YamlErrorType {
     /** No error is produced. */
     YAML_NO_ERROR,
@@ -36,7 +36,7 @@ pub enum YamlErrorType {
     YAML_EMITTER_ERROR
 }
 
-#[derive(Show, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Copy)]
 #[repr(C)]
 pub enum YamlSequenceStyle {
     /** Let the emitter choose the style. */
@@ -48,7 +48,7 @@ pub enum YamlSequenceStyle {
     YamlFlowSequenceStyle
 }
 
-#[derive(Show, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Copy)]
 #[repr(C)]
 pub enum YamlScalarStyle {
     /** Let the emitter choose the style. */
@@ -68,7 +68,7 @@ pub enum YamlScalarStyle {
     YamlFoldedScalarStyle
 }
 
-#[derive(Show, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Copy)]
 #[repr(C)]
 pub enum YamlEncoding {
     /** Let the parser choose the encoding. */
