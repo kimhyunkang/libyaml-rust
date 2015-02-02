@@ -7,7 +7,7 @@ use document::{YamlDocument};
 use codecs;
 
 use std::mem;
-use std::io::{IoError, EndOfFile};
+use std::old_io::{IoError, EndOfFile};
 use std::slice;
 
 pub struct YamlEventStream<P> {
@@ -248,7 +248,7 @@ mod test {
     use ffi::YamlEncoding::*;
     use ffi::YamlScalarStyle::*;
     use ffi::YamlSequenceStyle::*;
-    use std::io;
+    use std::old_io::BufReader;
 
     #[test]
     fn test_byte_parser() {
@@ -274,7 +274,7 @@ mod test {
     #[test]
     fn test_io_parser() {
         let data = "[1, 2, 3]";
-        let mut reader = io::BufReader::new(data.as_bytes());
+        let mut reader = BufReader::new(data.as_bytes());
         let parser = parser::YamlIoParser::init(&mut reader, YamlUtf8Encoding);
         let expected = Ok(vec![
             YamlStreamStartEvent(YamlUtf8Encoding),

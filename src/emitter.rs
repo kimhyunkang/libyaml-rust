@@ -7,7 +7,7 @@ use std::slice;
 use std::ptr;
 use std::mem;
 use std::ffi::{c_str_to_bytes, CString};
-use std::io::IoError;
+use std::old_io::IoError;
 use libc;
 
 pub struct YamlBaseEmitter {
@@ -386,7 +386,7 @@ extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc
 
 #[cfg(test)]
 mod test {
-    use std::io::MemWriter;
+    use std::old_io::MemWriter;
     use emitter::YamlEmitter;
     use ffi::YamlEncoding::YamlUtf8Encoding;
     use ffi::YamlScalarStyle::*;

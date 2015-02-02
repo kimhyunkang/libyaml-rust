@@ -3,7 +3,7 @@
 #![feature(os)]
 #![feature(path)]
 
-use std::io::{Command, File, Truncate, Write};
+use std::old_io::{Command, File, Truncate, Write};
 use std::os;
 
 fn main()

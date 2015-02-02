@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::io::IoError;
+use std::old_io::IoError;
 use std::fmt;
 use ffi;
 use ffi::YamlErrorType;

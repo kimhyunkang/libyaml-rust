@@ -10,8 +10,7 @@ use yaml::emitter::YamlEmitter;
 use yaml::ffi::{YamlEncoding, YamlScalarStyle};
 
 use std::error::Error;
-use std::io::{IoError, IoResult};
-use std::io::IoErrorKind;
+use std::old_io::{IoError, IoErrorKind, IoResult};
 
 struct MockRW {
     _data: ()

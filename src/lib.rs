@@ -84,7 +84,7 @@ pub fn parse_io(reader: &mut Reader, encoding: ffi::YamlEncoding) -> Result<Vec<
 #[cfg(test)]
 mod test {
     use std::mem;
-    use std::io;
+    use std::old_io::BufReader;
     use constructor::YamlStandardData::*;
 
     #[test]
@@ -133,7 +133,7 @@ mod test {
     #[test]
     fn test_parse_io() {
         let data = "[1, 2, 3]";
-        let mut reader = io::BufReader::new(data.as_bytes());
+        let mut reader = BufReader::new(data.as_bytes());
         assert_eq!(Ok(vec![YamlSequence(vec![YamlInteger(1), YamlInteger(2), YamlInteger(3)])]), super::parse_io_utf8(&mut reader))
     }
 }

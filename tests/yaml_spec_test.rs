@@ -10,7 +10,7 @@ extern crate yaml;
 use yaml::constructor::YamlStandardData;
 use yaml::ffi::YamlEncoding;
 use std::os;
-use std::io::{File, BufferedReader};
+use std::old_io::{File, BufferedReader};
 
 fn match_utf8(filename: &str, expected: YamlStandardData) {
     match_file(YamlEncoding::YamlUtf8Encoding, filename, expected);
