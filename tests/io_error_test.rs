@@ -1,5 +1,7 @@
 // Allow unstable items until Rust hits 1.0
-#![allow(unstable)]
+#![feature(core)]
+#![feature(io)]
+#![feature(collections)]
 
 extern crate yaml;
 

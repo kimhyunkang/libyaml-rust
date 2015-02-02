@@ -1,4 +1,7 @@
-#![allow(unstable)]
+#![feature(core)]
+#![feature(io)]
+#![feature(os)]
+#![feature(path)]
 
 use std::io::{Command, File, Truncate, Write};
 use std::os;

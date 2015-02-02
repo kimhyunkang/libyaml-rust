@@ -3,8 +3,11 @@
 #![feature(plugin)]
 #![feature(box_syntax)]
 
-// Allow unstable items until Rust hits 1.0
-#![allow(unstable)]
+#![feature(core)]
+#![feature(std_misc)]
+#![feature(libc)]
+#![feature(io)]
+#![feature(collections)]
 
 extern crate libc;
 
