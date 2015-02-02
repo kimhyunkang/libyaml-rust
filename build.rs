@@ -20,5 +20,5 @@ fn main()
         panic!("{}", String::from_utf8_lossy(code.error.as_slice()));
     }
     let mut f = File::open_mode(&Path::new("src/type_size.rs"), Truncate, Write);
-    f.write(code.output.as_slice()).unwrap();
+    f.write_all(code.output.as_slice()).unwrap();
 }

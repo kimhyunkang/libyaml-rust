@@ -33,7 +33,7 @@ impl Reader for MockRW {
 }
 
 impl Writer for MockRW {
-    fn write(&mut self, _buf: &[u8]) -> IoResult<()> {
+    fn write_all(&mut self, _buf: &[u8]) -> IoResult<()> {
         Err(IoError {
             kind: IoErrorKind::OtherIoError,
             desc: "",
