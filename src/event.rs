@@ -6,19 +6,19 @@ use std::ptr;
 
 use codecs;
 
-#[derive(Show, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Copy)]
 pub struct YamlVersionDirective {
     pub major: isize,
     pub minor: isize,
 }
 
-#[derive(Show, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct YamlTagDirective {
     pub handle: String,
     pub prefix: String,
 }
 
-#[derive(Show, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct YamlSequenceParam {
     pub anchor: Option<String>,
     pub tag: Option<String>,
@@ -26,7 +26,7 @@ pub struct YamlSequenceParam {
     pub style: YamlSequenceStyle
 }
 
-#[derive(Show, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct YamlScalarParam {
     pub anchor: Option<String>,
     pub tag: Option<String>,
@@ -36,7 +36,7 @@ pub struct YamlScalarParam {
     pub style: YamlScalarStyle
 }
 
-#[derive(Show, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum YamlEvent {
     YamlNoEvent,
     YamlStreamStartEvent(YamlEncoding),
