@@ -137,7 +137,7 @@ impl YamlStandardConstructor {
 
 fn parse_escape_sequence(rep: &str, expected_len: usize) -> Option<char> {
     match FromStrRadix::from_str_radix(rep, 16) {
-        Some(code) if rep.len() == expected_len => char::from_u32(code),
+        Ok(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
 }

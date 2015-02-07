@@ -2,13 +2,14 @@
 #![feature(core)]
 #![feature(io)]
 #![feature(os)]
+#![feature(env)]
 #![feature(path)]
 
 extern crate yaml;
 
 use yaml::constructor::YamlStandardData;
 use yaml::ffi::YamlEncoding;
-use std::os;
+use std::env;
 use std::old_io::{File, BufferedReader};
 
 fn match_utf8(filename: &str, expected: YamlStandardData) {
@@ -16,7 +17,8 @@ fn match_utf8(filename: &str, expected: YamlStandardData) {
 }
 
 fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
-    let this_path = os::args().as_slice()[0].clone();
+    let mut args = env::args();
+    let this_path = args.next().unwrap().into_string().unwrap();
     let file_path = Path::new(this_path).join("../../tests/source").join(filename);
     println!("{}", file_path.display());
     let mut reader = BufferedReader::new(File::open(&file_path));
