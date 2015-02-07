@@ -1,6 +1,5 @@
 // Allow unstable items until Rust hits 1.0
 #![feature(core)]
-#![feature(collections)]
 #![feature(io)]
 #![feature(os)]
 #![feature(path)]

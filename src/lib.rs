@@ -7,7 +7,6 @@
 #![feature(std_misc)]
 #![feature(libc)]
 #![feature(io)]
-#![feature(collections)]
 
 extern crate libc;
 
