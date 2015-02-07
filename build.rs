@@ -1,21 +1,23 @@
 #![feature(core)]
 #![feature(io)]
-#![feature(os)]
+#![feature(env)]
 #![feature(path)]
 
 use std::old_io::{Command, File, Truncate, Write};
-use std::os;
+use std::path;
+use std::env;
 
 fn main()
 {
-    let dir = Path::new(os::getenv("OUT_DIR").unwrap());
+    let dir_var = env::var("OUT_DIR").unwrap();
+    let dir = path::Path::new(&dir_var);
     let out_file = dir.join("codegen");
     Command::new("gcc").arg("src/codegen/type_size.c")
                        .arg("-o")
-                       .arg(out_file.as_vec())
+                       .arg(out_file.to_str().unwrap())
                        .status()
                        .unwrap();
-    let code = Command::new(out_file.as_vec()).output().unwrap();
+    let code = Command::new(out_file.to_str().unwrap()).output().unwrap();
     if !code.status.success() {
         panic!("{}", String::from_utf8_lossy(code.error.as_slice()));
     }
