@@ -52,6 +52,18 @@ fn standard_error(message: String, mark: &YamlMark) -> YamlError {
     }
 }
 
+fn take(iter: &mut Iterator<Item=char>, n: usize) -> String
+{
+    let mut s = String::new();
+    for _ in 0..n {
+        match iter.next() {
+            Some(c) => s.push(c),
+            None => break
+        }
+    }
+    return s;
+}
+
 impl YamlStandardConstructor {
     pub fn new() -> YamlStandardConstructor {
         YamlStandardConstructor
@@ -85,7 +97,7 @@ impl YamlStandardConstructor {
                         Some('L') => buf.push('\u{2028}'),          // unicode line separator
                         Some('P') => buf.push('\u{2029}'),          // unicode paragraph separator
                         Some('x') => {
-                            let code:String = it.take(2).collect();
+                            let code:String = take(&mut it, 2);
                             match parse_escape_sequence(code.as_slice(), 2) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
@@ -95,7 +107,7 @@ impl YamlStandardConstructor {
                             }
                         },
                         Some('u') => {
-                            let code:String = it.take(4).collect();
+                            let code:String = take(&mut it, 4);
                             match parse_escape_sequence(code.as_slice(), 4) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
@@ -105,7 +117,7 @@ impl YamlStandardConstructor {
                             }
                         },
                         Some('U') => {
-                            let code:String = it.take(8).collect();
+                            let code:String = take(&mut it, 8);
                             match parse_escape_sequence(code.as_slice(), 8) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
