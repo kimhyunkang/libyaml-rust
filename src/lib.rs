@@ -8,10 +8,10 @@
 #![feature(libc)]
 #![feature(io)]
 
+#![plugin(regex_macros)]
+
 extern crate libc;
 
-#[plugin]
-extern crate regex_macros;
 extern crate regex;
 
 use std::str;
