@@ -372,7 +372,7 @@ impl<'r> YamlEmitter<'r> {
 
 extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc::size_t) -> libc::c_int {
     unsafe {
-        let buf = slice::from_raw_buf(&buffer, size as usize);
+        let buf = slice::from_raw_parts(buffer, size as usize);
         let emitter = &mut *data;
         match emitter.writer.write_all(buf) {
             Ok(()) => 1,

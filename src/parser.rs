@@ -92,7 +92,7 @@ pub trait YamlParser: Sized {
 
 extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc::size_t, size_read: *mut libc::size_t) -> libc::c_int {
     unsafe {
-        let mut buf = slice::from_raw_mut_buf(&buffer, size as usize);
+        let mut buf = slice::from_raw_parts_mut(buffer, size as usize);
         let parser = &mut *data;
         match parser.reader.read(buf) {
             Ok(size) => {
