@@ -386,7 +386,6 @@ extern fn handle_writer_cb(data: *mut YamlEmitter, buffer: *const u8, size: libc
 
 #[cfg(test)]
 mod test {
-    use std::old_io::MemWriter;
     use emitter::YamlEmitter;
     use ffi::YamlEncoding::YamlUtf8Encoding;
     use ffi::YamlScalarStyle::*;
@@ -395,7 +394,7 @@ mod test {
     #[test]
     #[allow(unused_must_use)]
     fn event_emitter_sequence_test() {
-        let mut writer = MemWriter::new();
+        let mut writer = Vec::new();
         {
             let mut emitter = YamlEmitter::init(&mut writer);
             emitter.emit_stream(YamlUtf8Encoding, |e| {
@@ -408,13 +407,13 @@ mod test {
             });
             emitter.flush();
         }
-        assert_eq!(writer.get_ref(), "[1, 2]\n".as_bytes());
+        assert_eq!(writer.as_slice(), b"[1, 2]\n");
     }
 
     #[test]
     #[allow(unused_must_use)]
     fn event_emitter_mapping_test() {
-        let mut writer = MemWriter::new();
+        let mut writer = Vec::new();
         {
             let mut emitter = YamlEmitter::init(&mut writer);
             emitter.emit_stream(YamlUtf8Encoding, |e| {
@@ -429,6 +428,6 @@ mod test {
             });
             emitter.flush();
         }
-        assert_eq!(writer.get_ref(), "{a: 1, b: 2}\n".as_bytes());
+        assert_eq!(writer.as_slice(), b"{a: 1, b: 2}\n");
     }
 }
