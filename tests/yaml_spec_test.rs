@@ -18,7 +18,7 @@ fn match_utf8(filename: &str, expected: YamlStandardData) {
 
 fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
     let mut args = env::args();
-    let this_path = args.next().unwrap().into_string().unwrap();
+    let this_path = args.next().unwrap();
     let file_path = Path::new(this_path).join("../../tests/source").join(filename);
     println!("{}", file_path.display());
     let mut reader = BufferedReader::new(File::open(&file_path));
