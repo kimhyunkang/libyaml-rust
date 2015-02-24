@@ -164,7 +164,8 @@ impl Drop for YamlBaseParser {
 }
 
 pub struct YamlByteParser<'r> {
-    base_parser: YamlBaseParser
+    base_parser: YamlBaseParser,
+    data: &'r [u8]
 }
 
 impl<'r> YamlParser for YamlByteParser<'r> {
@@ -181,7 +182,8 @@ impl<'r> YamlByteParser<'r> {
     pub fn init(bytes: &'r [u8], encoding: ffi::YamlEncoding) -> Box<YamlByteParser<'r>> {
         unsafe {
             let mut parser = box YamlByteParser {
-                base_parser: YamlBaseParser::new()
+                base_parser: YamlBaseParser::new(),
+                data: bytes
             };
 
             if !parser.base_parser.initialize() {
