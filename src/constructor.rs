@@ -142,7 +142,7 @@ fn parse_escape_sequence(rep: &str, expected_len: usize) -> Option<char> {
     }
 }
 
-fn parse_int(sign: &str, data: &str, radix: usize) -> isize {
+fn parse_int(sign: &str, data: &str, radix: u32) -> isize {
     let sign_flag = if sign == "-" {
             -1
         } else {
