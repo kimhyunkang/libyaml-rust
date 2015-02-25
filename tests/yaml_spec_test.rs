@@ -3,6 +3,7 @@
 #![feature(io)]
 #![feature(env)]
 #![feature(path)]
+#![feature(fs)]
 
 extern crate yaml;
 
@@ -23,7 +24,7 @@ fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlS
     let dir_path = path::Path::new(this_path.as_slice()).parent().unwrap();
     let file_path = dir_path.join("../tests/source").join(filename);
     println!("{}", file_path.display());
-    let mut file = match File::open(&file_path) {
+    let file = match File::open(&file_path) {
         Ok(f) => f,
         Err(e) => panic!("Failed to open file {}: {}", file_path.to_str().unwrap(), e)
     };
