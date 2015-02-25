@@ -15,7 +15,7 @@ extern crate libc;
 extern crate regex;
 
 use std::str;
-use std::ffi::c_str_to_bytes;
+use std::ffi::CStr;
 use std::io::Read;
 
 use parser::YamlParser;
@@ -35,7 +35,7 @@ mod type_size;
 
 pub fn version_string() -> String {
     unsafe {
-        str::from_utf8(c_str_to_bytes(&ffi::yaml_get_version_string())).unwrap().to_string()
+        str::from_utf8(CStr::from_ptr(ffi::yaml_get_version_string()).to_bytes()).unwrap().to_string()
     }
 }
 

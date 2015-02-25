@@ -5,7 +5,7 @@ use libc;
 use std::slice;
 use std::str;
 use std::ptr;
-use std::ffi::c_str_to_bytes;
+use std::ffi::CStr;
 
 pub fn decode_c_str(c_str: *const ffi::yaml_char_t) -> Option<String> {
     if c_str == ptr::null() {
@@ -13,7 +13,7 @@ pub fn decode_c_str(c_str: *const ffi::yaml_char_t) -> Option<String> {
     } else {
         unsafe {
             let i8_str = c_str as *const i8;
-            str::from_utf8(c_str_to_bytes(&i8_str)).map(|s| s.to_string()).ok()
+            str::from_utf8(CStr::from_ptr(i8_str).to_bytes()).map(|s| s.to_string()).ok()
         }
     }
 }

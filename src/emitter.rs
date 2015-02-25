@@ -6,7 +6,7 @@ use std::str;
 use std::slice;
 use std::ptr;
 use std::mem;
-use std::ffi::{c_str_to_bytes, CString};
+use std::ffi::{CStr, CString};
 use std::io;
 use std::io::Write;
 use libc;
@@ -59,10 +59,10 @@ impl<'r> YamlEmitter<'r> {
     fn get_error(&mut self) -> YamlError {
         let emitter_mem = &self.base_emitter.emitter_mem;
         unsafe {
-            let c_problem = c_str_to_bytes(&emitter_mem.problem);
+            let c_problem = CStr::from_ptr(emitter_mem.problem);
             let mut error = YamlError {
                 kind: emitter_mem.error,
-                problem: str::from_utf8(c_problem).map(|s| s.to_string()).ok(),
+                problem: str::from_utf8(c_problem.to_bytes()).map(|s| s.to_string()).ok(),
                 io_error: None,
                 context: None
             };
