@@ -28,5 +28,5 @@ fn main()
         Ok(f) => f,
         Err(e) => panic!("{:?}", e)
     };
-    f.write_all(output.stdout.as_slice()).unwrap();
+    f.write_all(&output.stdout[..]).unwrap();
 }
