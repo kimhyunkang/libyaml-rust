@@ -37,6 +37,29 @@ pub struct YamlEmitter<'r> {
     io_error: Option<io::Error>,
 }
 
+fn to_c_str_opt(s: Option<&str>) -> Result<Option<CString>, YamlError> {
+    match s {
+        None => Ok(None),
+        Some(s) => match CString::new(s.as_bytes()) {
+            Ok(cstr) => Ok(Some(cstr)),
+            Err(_) => Err(YamlError::new(
+                        ffi::YamlErrorType::YAML_EMITTER_ERROR,
+                        Some("Nul bytes in string".to_string())
+                    ))
+        }
+    }
+}
+
+fn to_c_str(s: &str) -> Result<CString, YamlError> {
+    match CString::new(s.as_bytes()) {
+        Ok(cstr) => Ok(cstr),
+        Err(_) => Err(YamlError::new(
+                    ffi::YamlErrorType::YAML_EMITTER_ERROR,
+                    Some("Nul bytes in string".to_string())
+                ))
+    }
+}
+
 impl<'r> YamlEmitter<'r> {
     pub fn init<'a>(writer: &'a mut Write) -> Box<YamlEmitter<'a>> {
         unsafe {
@@ -142,15 +165,14 @@ impl<'r> YamlEmitter<'r> {
             None => ptr::null()
         };
 
-        let c_strs: Vec<(CString, CString)> = tag_directives.iter().map(|tag| {
-            (CString::from_slice(tag.handle.as_bytes()), CString::from_slice(tag.prefix.as_bytes()))
-        }).collect();
-        let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
-            ffi::yaml_tag_directive_t {
-                handle: tuple.0.as_ptr(),
-                prefix: tuple.1.as_ptr(),
-            }
-        }).collect();
+        let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> =
+            match tag_directives.iter().map(|tag| tag.to_tag_directive_t()).collect() {
+                Ok(dirs) => dirs,
+                Err(_) => return Err(YamlError::new(
+                        ffi::YamlErrorType::YAML_EMITTER_ERROR,
+                        Some("Nul bytes in tag directives".to_string())
+                    ))
+            };
         let tag_dir_start = c_tag_dirs.as_ptr();
         unsafe {
             let mut event = mem::uninitialized();
@@ -187,7 +209,7 @@ impl<'r> YamlEmitter<'r> {
     }
 
     pub fn emit_alias_event(&mut self, anchor: &str) -> Result<(), YamlError> {
-        let c_anchor = CString::from_slice(anchor.as_bytes());
+        let c_anchor = try!(to_c_str(anchor));
 
         unsafe {
             let mut event = mem::uninitialized();
@@ -209,12 +231,12 @@ impl<'r> YamlEmitter<'r> {
         value: &str, plain_implicit: bool, quoted_implicit: bool,
         style: ffi::YamlScalarStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
+        let c_anchor = try!(to_c_str_opt(anchor));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
+        let c_tag = try!(to_c_str_opt(tag));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()
@@ -255,12 +277,12 @@ impl<'r> YamlEmitter<'r> {
     fn emit_sequence_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
+        let c_anchor = try!(to_c_str_opt(anchor));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
+        let c_tag = try!(to_c_str_opt(tag));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()
@@ -314,12 +336,12 @@ impl<'r> YamlEmitter<'r> {
     fn emit_mapping_start_event(&mut self, anchor: Option<&str>, tag: Option<&str>, implicit: bool,
         style: ffi::YamlSequenceStyle) -> Result<(), YamlError>
     {
-        let c_anchor = anchor.map(|s| CString::from_slice(s.as_bytes()));
+        let c_anchor = try!(to_c_str_opt(anchor));
         let anchor_ptr = match c_anchor {
             Some(s) => s.as_ptr(),
             None => ptr::null()
         };
-        let c_tag = tag.map(|s| CString::from_slice(s.as_bytes()));
+        let c_tag = try!(to_c_str_opt(tag));
         let tag_ptr = match c_tag {
             Some(s) => s.as_ptr(),
             None => ptr::null()

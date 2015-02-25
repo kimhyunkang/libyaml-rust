@@ -4,11 +4,9 @@ use codecs;
 use ffi;
 use ffi::yaml_node_type_t::*;
 use error::YamlMark;
-use event::{YamlVersionDirective, YamlTagDirective};
 
 use std::ptr;
 use std::mem;
-use std::ffi::CString;
 
 pub struct YamlDocument {
     document_mem: ffi::yaml_document_t
@@ -30,48 +28,6 @@ impl YamlDocument {
     pub fn is_empty(&self) -> bool {
         unsafe {
             ffi::yaml_document_get_root_node(&self.document_mem) == ptr::null()
-        }
-    }
-
-    pub fn init(version_directive: Option<YamlVersionDirective>,
-        tag_directives: &[YamlTagDirective],
-        start_implicit: bool, end_implicit: bool) -> Box<YamlDocument>
-    {
-        let mut vsn_dir = ffi::yaml_version_directive_t { major: 0, minor: 0 };
-        let c_vsn_dir = match version_directive {
-            None => ptr::null(),
-            Some(vsn) => {
-                vsn_dir.major = vsn.major as libc::c_int;
-                vsn_dir.minor = vsn.minor as libc::c_int;
-                &vsn_dir as *const ffi::yaml_version_directive_t
-            }
-        };
-
-        let c_strs: Vec<(CString, CString)> = tag_directives.iter().map(|tag| {
-            (CString::from_slice(tag.handle.as_bytes()), CString::from_slice(tag.prefix.as_bytes()))
-        }).collect();
-        let c_tag_dirs: Vec<ffi::yaml_tag_directive_t> = c_strs.iter().map(|tuple| {
-            ffi::yaml_tag_directive_t {
-                handle: tuple.0.as_ptr(),
-                prefix: tuple.1.as_ptr(),
-            }
-        }).collect();
-        let tag_dir_start = c_tag_dirs.as_ptr();
-        let c_start_implicit = if start_implicit { 1 } else { 0 };
-        let c_end_implicit = if end_implicit { 1 } else { 0 };
-        unsafe {
-            let mut document = box YamlDocument {
-                document_mem: mem::uninitialized()
-            };
-
-            let tag_dir_end = tag_dir_start.offset(c_tag_dirs.len() as isize);
-            if ffi::yaml_document_initialize(&mut document.document_mem, c_vsn_dir,
-                tag_dir_start, tag_dir_end, c_start_implicit, c_end_implicit) == 0
-            {
-                panic!("yaml_document_initialize failed!")
-            }
-
-            document
         }
     }
 

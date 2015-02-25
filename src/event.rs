@@ -1,6 +1,7 @@
 use ffi;
 use ffi::{YamlEncoding, YamlSequenceStyle, YamlScalarStyle};
 use ffi::yaml_event_type_t::*;
+use std::ffi::{CString, NulError};
 use std::mem;
 use std::ptr;
 
@@ -16,6 +17,17 @@ pub struct YamlVersionDirective {
 pub struct YamlTagDirective {
     pub handle: String,
     pub prefix: String,
+}
+
+impl YamlTagDirective {
+    pub fn to_tag_directive_t(&self) -> Result<ffi::yaml_tag_directive_t, NulError> {
+        let handle = try!(CString::new(self.handle.as_bytes()));
+        let prefix = try!(CString::new(self.prefix.as_bytes()));
+        Ok(ffi::yaml_tag_directive_t {
+            handle: handle.as_ptr(),
+            prefix: prefix.as_ptr()
+        })
+    }
 }
 
 #[derive(Debug, PartialEq)]

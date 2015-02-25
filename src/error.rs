@@ -60,6 +60,17 @@ impl Error for YamlError {
     }
 }
 
+impl YamlError {
+    pub fn new(kind: ffi::YamlErrorType, problem: Option<String>) -> YamlError {
+        YamlError {
+            kind: kind,
+            problem: problem,
+            io_error: None,
+            context: None
+        }
+    }
+}
+
 impl fmt::Display for YamlError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.problem {
