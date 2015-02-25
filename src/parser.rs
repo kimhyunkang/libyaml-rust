@@ -8,8 +8,9 @@ use codecs;
 
 use std::mem;
 use std::io;
-use std::io::{Read, ErrorKind};
+use std::io::Read;
 use std::slice;
+use std::marker::PhantomData;
 
 pub struct YamlEventStream<P> {
     parser: Box<P>,
@@ -158,7 +159,7 @@ impl Drop for YamlBaseParser {
 
 pub struct YamlByteParser<'r> {
     base_parser: YamlBaseParser,
-    data: &'r [u8]
+    data: PhantomData<&'r [u8]>
 }
 
 impl<'r> YamlParser for YamlByteParser<'r> {
@@ -176,7 +177,7 @@ impl<'r> YamlByteParser<'r> {
         unsafe {
             let mut parser = box YamlByteParser {
                 base_parser: YamlBaseParser::new(),
-                data: bytes
+                data: PhantomData
             };
 
             if !parser.base_parser.initialize() {
