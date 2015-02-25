@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::old_io::IoError;
+use std::io;
 use std::fmt;
 use ffi;
 use ffi::YamlErrorType;
@@ -34,7 +34,7 @@ pub struct YamlErrorContext {
 pub struct YamlError {
     pub kind: ffi::YamlErrorType,
     pub problem: Option<String>,
-    pub io_error: Option<IoError>,
+    pub io_error: Option<io::Error>,
     pub context: Option<YamlErrorContext>
 }
 

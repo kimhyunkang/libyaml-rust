@@ -9,7 +9,9 @@ extern crate yaml;
 use yaml::constructor::YamlStandardData;
 use yaml::ffi::YamlEncoding;
 use std::env;
-use std::old_io::{File, BufferedReader};
+use std::path;
+use std::io::BufReader;
+use std::fs::File;
 
 fn match_utf8(filename: &str, expected: YamlStandardData) {
     match_file(YamlEncoding::YamlUtf8Encoding, filename, expected);
@@ -18,9 +20,14 @@ fn match_utf8(filename: &str, expected: YamlStandardData) {
 fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
     let mut args = env::args();
     let this_path = args.next().unwrap();
-    let file_path = Path::new(this_path).join("../../tests/source").join(filename);
+    let dir_path = path::Path::new(this_path.as_slice()).parent().unwrap();
+    let file_path = dir_path.join("../tests/source").join(filename);
     println!("{}", file_path.display());
-    let mut reader = BufferedReader::new(File::open(&file_path));
+    let mut file = match File::open(&file_path) {
+        Ok(f) => f,
+        Err(e) => panic!("Failed to open file {}: {}", file_path.to_str().unwrap(), e)
+    };
+    let mut reader = BufReader::new(file);
     match yaml::parse_io(&mut reader, encoding) {
         Ok(docs) => if docs.len() == 1 {
             assert_eq!(docs.as_slice().first().unwrap(), &expected)

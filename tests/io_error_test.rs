@@ -9,7 +9,8 @@ use yaml::emitter::YamlEmitter;
 use yaml::ffi::{YamlEncoding, YamlScalarStyle};
 
 use std::error::Error;
-use std::old_io::{IoError, IoErrorKind, IoResult};
+use std::io;
+use std::io::{Read, Write};
 
 struct MockRW {
     _data: ()
@@ -21,23 +22,31 @@ impl MockRW {
     }
 }
 
-impl Reader for MockRW {
-    fn read(&mut self, _buf: &mut [u8]) -> IoResult<usize> {
-        Err(IoError {
-            kind: IoErrorKind::OtherIoError,
-            desc: "",
-            detail: Some("mock reader".to_string())
-        })
+impl Read for MockRW {
+    fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "",
+            Some("mock reader".to_string())
+        ))
     }
 }
 
-impl Writer for MockRW {
-    fn write_all(&mut self, _buf: &[u8]) -> IoResult<()> {
-        Err(IoError {
-            kind: IoErrorKind::OtherIoError,
-            desc: "",
-            detail: Some("mock writer".to_string())
-        })
+impl Write for MockRW {
+    fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "",
+            Some("mock writer".to_string())
+        ))
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "",
+            Some("mock writer".to_string())
+        ))
     }
 }
 

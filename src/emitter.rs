@@ -7,7 +7,8 @@ use std::slice;
 use std::ptr;
 use std::mem;
 use std::ffi::{c_str_to_bytes, CString};
-use std::old_io::IoError;
+use std::io;
+use std::io::Write;
 use libc;
 
 pub struct YamlBaseEmitter {
@@ -32,12 +33,12 @@ impl Drop for YamlBaseEmitter {
 
 pub struct YamlEmitter<'r> {
     base_emitter: YamlBaseEmitter,
-    writer: &'r mut (Writer+'r),
-    io_error: Option<IoError>,
+    writer: &'r mut (Write+'r),
+    io_error: Option<io::Error>,
 }
 
 impl<'r> YamlEmitter<'r> {
-    pub fn init<'a>(writer: &'a mut Writer) -> Box<YamlEmitter<'a>> {
+    pub fn init<'a>(writer: &'a mut Write) -> Box<YamlEmitter<'a>> {
         unsafe {
             let mut emitter = box YamlEmitter {
                 base_emitter: YamlBaseEmitter::new(),

@@ -7,7 +7,8 @@ use document::{YamlDocument};
 use codecs;
 
 use std::mem;
-use std::old_io::{IoError, EndOfFile};
+use std::io;
+use std::io::{Read, ErrorKind};
 use std::slice;
 
 pub struct YamlEventStream<P> {
@@ -100,16 +101,8 @@ extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc:
                 return 1;
             },
             Err(err) => {
-                match err.kind {
-                    EndOfFile => {
-                        *size_read = 0;
-                        return 1;
-                    },
-                    _ => {
-                        parser.io_error = Some(err);
-                        return 0;
-                    }
-                }
+                parser.io_error = Some(err);
+                return 0;
             }
         }
     }
@@ -200,8 +193,8 @@ impl<'r> YamlByteParser<'r> {
 
 pub struct YamlIoParser<'r> {
     base_parser: YamlBaseParser,
-    reader: &'r mut (Reader+'r),
-    io_error: Option<IoError>,
+    reader: &'r mut (Read+'r),
+    io_error: Option<io::Error>,
 }
 
 impl<'r> YamlParser for YamlIoParser<'r> {
@@ -217,7 +210,7 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 }
 
 impl<'r> YamlIoParser<'r> {
-    pub fn init<'a>(reader: &'a mut Reader, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'a>> {
+    pub fn init<'a>(reader: &'a mut Read, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'a>> {
         unsafe {
             let mut parser = box YamlIoParser {
                 base_parser: YamlBaseParser::new(),
@@ -250,7 +243,7 @@ mod test {
     use ffi::YamlEncoding::*;
     use ffi::YamlScalarStyle::*;
     use ffi::YamlSequenceStyle::*;
-    use std::old_io::BufReader;
+    use std::io::BufReader;
 
     #[test]
     fn test_byte_parser() {
