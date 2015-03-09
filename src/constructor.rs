@@ -303,10 +303,10 @@ mod test {
                     Ok(YamlSequence(seq)) => {
                         match seq.as_slice() {
                             [YamlFloat(f1), YamlFloat(f2), YamlFloat(f3), YamlFloat(f4)] => {
-                                assert!(f1.abs_sub(0.3) < 1.0e-6);
-                                assert!(f2.abs_sub(-0.4) < 1.0e-6);
-                                assert!(f3.abs_sub(1e+2) < 1.0e-6);
-                                assert!(f4.abs_sub(-1.2e-3) < 1.0e-6);
+                                assert!((f1 - 0.3).abs() < 1.0e-6);
+                                assert!((f2 + 0.4) < 1.0e-6);
+                                assert!((f3 - 1e+2) < 1.0e-6);
+                                assert!((f4 + 1.2e-3) < 1.0e-6);
                             },
                             _ => panic!("unexpected sequence")
                         }

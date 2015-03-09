@@ -4,7 +4,6 @@
 #![feature(box_syntax)]
 
 #![feature(core)]
-#![feature(std_misc)]
 #![feature(libc)]
 #![feature(io)]
 
