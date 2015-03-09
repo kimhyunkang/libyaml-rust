@@ -1,42 +1,32 @@
 // Allow unstable items until Rust hits 1.0
-#![feature(core)]
-#![feature(io)]
-#![feature(env)]
-#![feature(path)]
-#![feature(fs)]
 
 extern crate yaml;
 
 use yaml::constructor::YamlStandardData;
 use yaml::ffi::YamlEncoding;
-use std::env;
-use std::path;
-use std::io::BufReader;
-use std::fs::File;
+use std::io::Cursor;
 
-fn match_utf8(filename: &str, expected: YamlStandardData) {
-    match_file(YamlEncoding::YamlUtf8Encoding, filename, expected);
+macro_rules! test_utf8{
+    ($filename: expr, $expected: expr) => (
+        test_file!(yaml::ffi::YamlEncoding::YamlUtf8Encoding, $filename, $expected)
+    )
 }
 
-fn match_file(encoding: yaml::ffi::YamlEncoding, filename: &str, expected: YamlStandardData) {
-    let mut args = env::args();
-    let this_path = args.next().unwrap();
-    let dir_path = path::Path::new(this_path.as_slice()).parent().unwrap();
-    let file_path = dir_path.join("../tests/source").join(filename);
-    println!("{}", file_path.display());
-    let file = match File::open(&file_path) {
-        Ok(f) => f,
-        Err(e) => panic!("Failed to open file {}: {}", file_path.to_str().unwrap(), e)
-    };
-    let mut reader = BufReader::new(file);
-    match yaml::parse_io(&mut reader, encoding) {
-        Ok(docs) => if docs.len() == 1 {
-            assert_eq!(docs.as_slice().first().unwrap(), &expected)
-        } else {
-            panic!("too many number of documents: {:?}", docs)
-        },
-        Err(e) => panic!("parse failure: {:?}", e)
-    }
+macro_rules! test_file{
+    ($encoding: expr, $filename: expr, $expected: expr) => (
+        {
+            let data = include_bytes!($filename);
+            let mut reader = Cursor::new(data);
+            match yaml::parse_io(&mut reader, $encoding) {
+                Ok(docs) => if docs.len() == 1 {
+                    assert_eq!(docs[..].first().unwrap(), &$expected)
+                } else {
+                    panic!("too many number of documents: {:?}", docs)
+                },
+                Err(e) => panic!("parse failure: {:?}", e)
+            }
+        }
+    )
 }
 
 macro_rules! ystr{
@@ -77,12 +67,12 @@ macro_rules! y_cmp_map{
 
 #[test]
 fn sequence_of_scalars() {
-    match_utf8("ball_players.yml", yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa"), ystr!("Ken Griffey")]);
+    test_utf8!("source/ball_players.yml", yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa"), ystr!("Ken Griffey")]);
 }
 
 #[test]
 fn scalar_mappings() {
-    match_utf8("player_stat.yml", ymap!{
+    test_utf8!("source/player_stat.yml", ymap!{
                                     "hr" => yint!(65),
                                     "avg" => yfloat!(0.278),
                                     "rbi" => yint!(147)
@@ -91,7 +81,7 @@ fn scalar_mappings() {
 
 #[test]
 fn maps_of_sequences() {
-    match_utf8("ball_clubs.yml", ymap!{
+    test_utf8!("source/ball_clubs.yml", ymap!{
                                     "american" => yseq![ystr!("Boston Red Sox"), ystr!("Detroit Tigers"), ystr!("New York Yankees")],
                                     "national" => yseq![ystr!("New York Mets"), ystr!("Chicago Cubs"), ystr!("Atlanta Braves")]
                                 })
@@ -99,7 +89,7 @@ fn maps_of_sequences() {
 
 #[test]
 fn sequence_of_maps() {
-    match_utf8("multiple_player_stat.yml",
+    test_utf8!("source/multiple_player_stat.yml",
     yseq![
         ymap!{
             "name" => ystr!("Mark McGwire"),
@@ -114,7 +104,7 @@ fn sequence_of_maps() {
 
 #[test]
 fn sequence_of_sequences() {
-    match_utf8("csv.yml",
+    test_utf8!("source/csv.yml",
     yseq![
         yseq![ystr!("name"), ystr!("hr")],
         yseq![ystr!("Mark McGwire"), yint!(65)],
@@ -124,7 +114,7 @@ fn sequence_of_sequences() {
 
 #[test]
 fn mapping_of_mappings() {
-    match_utf8("map_map.yml",
+    test_utf8!("source/map_map.yml",
     ymap!{
         "Mark McGwire" => ymap!{ "hr" => yint!(65) },
         "Sammy Sosa" => ymap!{ "hr" => yint!(63) }
@@ -133,7 +123,7 @@ fn mapping_of_mappings() {
 
 #[test]
 fn alias() {
-    match_utf8("alias.yml",
+    test_utf8!("source/alias.yml",
     ymap!{
         "hr" => yseq![ystr!("Mark McGwire"), ystr!("Sammy Sosa")],
         "rbi" => yseq![ystr!("Sammy Sosa"), ystr!("Ken Griffey")]
@@ -142,7 +132,7 @@ fn alias() {
 
 #[test]
 fn complex_keys() {
-    match_utf8("complex_key.yml",
+    test_utf8!("source/complex_key.yml",
     y_cmp_map!{
         yseq![ystr!("Detroit Tigers"), ystr!("Chicago Cubs")] => yseq![ystr!("2001-07-23")],
         yseq![ystr!("New York Yankees"), ystr!("Atlanta Braves")] => yseq![ystr!("2001-07-02"), ystr!("2001-08-12"), ystr!("2001-08-14")]
@@ -151,17 +141,17 @@ fn complex_keys() {
 
 #[test]
 fn block_literal() {
-    match_utf8("block_literal.yml", ystr!("\\//||\\/||\n// ||  ||__\n"))
+    test_utf8!("source/block_literal.yml", ystr!("\\//||\\/||\n// ||  ||__\n"))
 }
 
 #[test]
 fn plain_scalar() {
-    match_utf8("plain_scalar.yml", ystr!("Mark McGwire's year was crippled by a knee injury."))
+    test_utf8!("source/plain_scalar.yml", ystr!("Mark McGwire's year was crippled by a knee injury."))
 }
 
 #[test]
 fn quoted_scalar() {
-    match_utf8("quoted_scalar.yml",
+    test_utf8!("source/quoted_scalar.yml",
     ymap!{
         "unicode" => ystr!("Sosa did fine.\u{263A}"),
         "control" => ystr!("\x081998\t1999\t2000\n"),
@@ -174,7 +164,7 @@ fn quoted_scalar() {
 
 #[test]
 fn multi_line_scalar() {
-    match_utf8("multi_line_scalar.yml",
+    test_utf8!("source/multi_line_scalar.yml",
     ymap!{
         "plain" => ystr!("This unquoted scalar spans many lines."),
         "quoted" => ystr!("So does this quoted scalar.\n")
@@ -183,14 +173,14 @@ fn multi_line_scalar() {
 
 #[test]
 fn utf16le() {
-    match_file(YamlEncoding::YamlUtf16LeEncoding, "utf16le.yml",
+    test_file!(YamlEncoding::YamlUtf16LeEncoding, "source/utf16le.yml",
                yseq![ystr!("Hello"), ystr!("世界")]
     )
 }
 
 #[test]
 fn utf16be() {
-    match_file(YamlEncoding::YamlUtf16BeEncoding, "utf16be.yml",
+    test_file!(YamlEncoding::YamlUtf16BeEncoding, "source/utf16be.yml",
                yseq![ystr!("Hello"), ystr!("世界")]
     )
 }
