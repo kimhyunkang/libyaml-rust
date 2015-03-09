@@ -98,7 +98,7 @@ impl YamlStandardConstructor {
                         Some('P') => buf.push('\u{2029}'),          // unicode paragraph separator
                         Some('x') => {
                             let code:String = take(&mut it, 2);
-                            match parse_escape_sequence(code.as_slice(), 2) {
+                            match parse_escape_sequence(&code[..], 2) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
                                             format!("invalid escape sequence {}", code),
@@ -108,7 +108,7 @@ impl YamlStandardConstructor {
                         },
                         Some('u') => {
                             let code:String = take(&mut it, 4);
-                            match parse_escape_sequence(code.as_slice(), 4) {
+                            match parse_escape_sequence(&code[..], 4) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
                                             format!("invalid escape sequence {}", code),
@@ -118,7 +118,7 @@ impl YamlStandardConstructor {
                         },
                         Some('U') => {
                             let code:String = take(&mut it, 8);
-                            match parse_escape_sequence(code.as_slice(), 8) {
+                            match parse_escape_sequence(&code[..], 8) {
                                 Some(c) => buf.push(c),
                                 None => return Err(standard_error(
                                             format!("invalid escape sequence {}", code),
@@ -150,7 +150,7 @@ fn parse_int(sign: &str, data: &str, radix: u32) -> isize {
         };
 
     let filtered:String = data.chars().filter(|&c| c != '_').collect();
-    let unsigned:isize = FromStrRadix::from_str_radix(filtered.as_slice(), radix).unwrap();
+    let unsigned:isize = FromStrRadix::from_str_radix(&filtered[..], radix).unwrap();
     return unsigned * sign_flag;
 }
 
@@ -182,50 +182,50 @@ impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
 
         match scalar.style() {
             YamlScalarStyle::YamlPlainScalarStyle => {
-                match BIN_INT.captures(value.as_slice()) {
+                match BIN_INT.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 caps.at(1).unwrap(), caps.at(2).unwrap(), 2))),
                     None => ()
                 };
-                match OCT_INT.captures(value.as_slice()) {
+                match OCT_INT.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 caps.at(1).unwrap(), caps.at(2).unwrap(), 8))),
                     None => ()
                 };
-                match HEX_INT.captures(value.as_slice()) {
+                match HEX_INT.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 caps.at(1).unwrap(), caps.at(2).unwrap(), 16))),
                     None => ()
                 };
 
-                if DEC_INT.is_match(value.as_slice()) {
-                    return Ok(YamlStandardData::YamlInteger(parse_int("", value.as_slice(), 10)));
+                if DEC_INT.is_match(&value[..]) {
+                    return Ok(YamlStandardData::YamlInteger(parse_int("", &value[..], 10)));
                 }
 
-                match FLOAT_PATTERN.captures(value.as_slice()) {
+                match FLOAT_PATTERN.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(
                                 caps.at(1).unwrap(), caps.at(2).unwrap()))),
                     None => ()
                 };
 
-                if POS_INF.is_match(value.as_slice()) {
+                if POS_INF.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::INFINITY))
-                } else if NEG_INF.is_match(value.as_slice()) {
+                } else if NEG_INF.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::NEG_INFINITY))
-                } else if NAN_PATTERN.is_match(value.as_slice()) {
+                } else if NAN_PATTERN.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::NAN))
-                } else if NULL_PATTERN.is_match(value.as_slice()) {
+                } else if NULL_PATTERN.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlNull)
-                } else if TRUE_PATTERN.is_match(value.as_slice()) {
+                } else if TRUE_PATTERN.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlBool(true))
-                } else if FALSE_PATTERN.is_match(value.as_slice()) {
+                } else if FALSE_PATTERN.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlBool(false))
                 } else {
                     Ok(YamlStandardData::YamlString(value))
                 }
             },
             YamlScalarStyle::YamlDoubleQuotedScalarStyle => {
-                YamlStandardConstructor::parse_double_quoted(value.as_slice(), &mark).map(YamlStandardData::YamlString)
+                YamlStandardConstructor::parse_double_quoted(&value[..], &mark).map(YamlStandardData::YamlString)
             },
             _ => {
                 Ok(YamlStandardData::YamlString(value))
@@ -301,7 +301,7 @@ mod test {
                 let value = ctor.construct(doc.root().unwrap());
                 match value {
                     Ok(YamlSequence(seq)) => {
-                        match seq.as_slice() {
+                        match &seq[..] {
                             [YamlFloat(f1), YamlFloat(f2), YamlFloat(f3), YamlFloat(f4)] => {
                                 assert!((f1 - 0.3).abs() < 1.0e-6);
                                 assert!((f2 + 0.4) < 1.0e-6);

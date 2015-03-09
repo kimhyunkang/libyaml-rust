@@ -335,7 +335,7 @@ mod test {
 
         match docs_res {
             Err(e) => panic!("unexpected result: {:?}", e),
-            Ok(docs) => match docs.as_slice().first().and_then(|doc| doc.root()) {
+            Ok(docs) => match docs[..].first().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlSequenceNode(seq)) => {
                     let values:Vec<String> = seq.values().map(|node| {
                         match node {
@@ -358,7 +358,7 @@ mod test {
 
         match docs_res {
             Err(e) => panic!("unexpected result: {:?}", e),
-            Ok(docs) => match docs.as_slice().first().and_then(|doc| doc.root()) {
+            Ok(docs) => match docs[..].first().and_then(|doc| doc.root()) {
                 Some(YamlNode::YamlMappingNode(seq)) => {
                     let values:Vec<(String, String)> = seq.pairs().map(|(key, value)| {
                         (

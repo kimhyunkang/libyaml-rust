@@ -430,7 +430,7 @@ mod test {
             });
             emitter.flush();
         }
-        assert_eq!(writer.as_slice(), b"[1, 2]\n");
+        assert_eq!(&writer[..], b"[1, 2]\n");
     }
 
     #[test]
@@ -451,6 +451,6 @@ mod test {
             });
             emitter.flush();
         }
-        assert_eq!(writer.as_slice(), b"{a: 1, b: 2}\n");
+        assert_eq!(&writer[..], b"{a: 1, b: 2}\n");
     }
 }

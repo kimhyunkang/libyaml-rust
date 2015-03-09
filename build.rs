@@ -19,7 +19,7 @@ fn main()
                        .unwrap();
     let output = Command::new(out_file).output().unwrap();
     if !output.status.success() {
-        panic!("{}", String::from_utf8_lossy(output.stderr.as_slice()));
+        panic!("{}", String::from_utf8_lossy(&output.stderr[..]));
     }
     let mut f = match File::create("src/type_size.rs") {
         Ok(f) => f,
