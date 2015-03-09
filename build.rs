@@ -1,7 +1,4 @@
-#![feature(fs)]
 #![feature(io)]
-#![feature(process)]
-#![feature(env)]
 #![feature(path)]
 
 use std::fs::File;
