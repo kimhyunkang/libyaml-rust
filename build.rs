@@ -24,9 +24,13 @@ fn main()
         Err(e) => panic!("Could not get env value OUT_DIR: {}", e)
     };
 
+    let compile_flags = env::var("LIBYAML_CFLAGS").unwrap_or("".to_string());
+
     let out_file = path::Path::new(&dir_var).join("codegen");
     let mut gcc_cmd = Command::new("gcc");
-    gcc_cmd.arg("src/codegen/type_size.c").arg("-o").arg(&out_file);
+    gcc_cmd.arg("src/codegen/type_size.c")
+        .arg(&compile_flags)
+        .arg("-o").arg(&out_file);
 
     run_cmd("gcc", &mut gcc_cmd);
 
