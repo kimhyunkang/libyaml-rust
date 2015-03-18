@@ -5,7 +5,6 @@
 
 #![feature(core)]
 #![feature(libc)]
-#![feature(io)]
 
 #![plugin(regex_macros)]
 
