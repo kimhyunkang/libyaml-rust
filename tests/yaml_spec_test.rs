@@ -15,7 +15,7 @@ macro_rules! test_utf8{
 macro_rules! test_file{
     ($encoding: expr, $filename: expr, $expected: expr) => (
         {
-            let data = include_bytes!($filename);
+            let data: &[u8] = include_bytes!($filename);
             let mut reader = Cursor::new(data);
             match yaml::parse_io(&mut reader, $encoding) {
                 Ok(docs) => if docs.len() == 1 {
