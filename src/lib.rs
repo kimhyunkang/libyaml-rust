@@ -5,6 +5,7 @@
 
 #![feature(core)]
 #![feature(libc)]
+#![feature(slice_patterns)]
 
 #![plugin(regex_macros)]
 
