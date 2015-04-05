@@ -257,7 +257,6 @@ mod test {
     use super::YamlStandardData::*;
     use parser::{YamlParser, YamlByteParser};
     use std::f64;
-    use std::num::Float;
     use ffi::YamlEncoding::YamlUtf8Encoding;
     use constructor::{YamlConstructor, YamlStandardConstructor};
 
