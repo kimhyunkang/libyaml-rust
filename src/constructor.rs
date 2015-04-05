@@ -3,7 +3,6 @@ use document::{YamlNode, YamlNodeData};
 use ffi::{YamlErrorType, YamlScalarStyle};
 use error::{YamlMark, YamlError, YamlErrorContext};
 
-use std::num::FromStrRadix;
 use std::f64;
 use std::char;
 use regex::Regex;
@@ -136,7 +135,7 @@ impl YamlStandardConstructor {
 }
 
 fn parse_escape_sequence(rep: &str, expected_len: usize) -> Option<char> {
-    match FromStrRadix::from_str_radix(rep, 16) {
+    match u32::from_str_radix(rep, 16) {
         Ok(code) if rep.len() == expected_len => char::from_u32(code),
         _ => None
     }
@@ -150,7 +149,7 @@ fn parse_int(sign: &str, data: &str, radix: u32) -> isize {
         };
 
     let filtered:String = data.chars().filter(|&c| c != '_').collect();
-    let unsigned:isize = FromStrRadix::from_str_radix(&filtered[..], radix).unwrap();
+    let unsigned:isize = isize::from_str_radix(&filtered[..], radix).unwrap();
     return unsigned * sign_flag;
 }
 
