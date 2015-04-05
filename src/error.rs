@@ -30,12 +30,22 @@ pub struct YamlErrorContext {
     pub context_mark: YamlMark
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct YamlError {
     pub kind: ffi::YamlErrorType,
     pub problem: Option<String>,
     pub io_error: Option<io::Error>,
     pub context: Option<YamlErrorContext>
+}
+
+impl PartialEq for YamlError {
+    fn eq(&self, rhs: &YamlError) -> bool {
+        self.kind == rhs.kind
+            && self.problem == rhs.problem
+            && self.io_error.is_none()
+            && rhs.io_error.is_none()
+            && self.context == rhs.context
+    }
 }
 
 impl Error for YamlError {
