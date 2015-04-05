@@ -13,7 +13,7 @@ pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u
 pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *const u8, size: size_t) -> c_int;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum YamlErrorType {
     /** No error is produced. */
     YAML_NO_ERROR,
@@ -36,7 +36,7 @@ pub enum YamlErrorType {
     YAML_EMITTER_ERROR
 }
 
-#[derive(Debug, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(C)]
 pub enum YamlSequenceStyle {
     /** Let the emitter choose the style. */
@@ -48,7 +48,7 @@ pub enum YamlSequenceStyle {
     YamlFlowSequenceStyle
 }
 
-#[derive(Debug, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(C)]
 pub enum YamlScalarStyle {
     /** Let the emitter choose the style. */
@@ -68,7 +68,7 @@ pub enum YamlScalarStyle {
     YamlFoldedScalarStyle
 }
 
-#[derive(Debug, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(C)]
 pub enum YamlEncoding {
     /** Let the parser choose the encoding. */
@@ -81,7 +81,7 @@ pub enum YamlEncoding {
     YamlUtf16BeEncoding
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_mark_t {
@@ -99,8 +99,6 @@ pub struct yaml_buffer_t {
     pub last: *const yaml_char_t
 }
 
-impl Copy for yaml_buffer_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_queue_t {
@@ -110,8 +108,6 @@ pub struct yaml_queue_t {
     pub tail: *const c_void
 }
 
-impl Copy for yaml_queue_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_stack_t {
@@ -120,9 +116,7 @@ pub struct yaml_stack_t {
     pub top: *const c_void
 }
 
-impl Copy for yaml_stack_t {}
-
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub enum yaml_node_type_t {
     /** An empty node. */
@@ -146,8 +140,6 @@ pub struct yaml_node_t {
     pub end_mark: yaml_mark_t,
 }
 
-impl Copy for yaml_node_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_scalar_node_t {
@@ -156,8 +148,6 @@ pub struct yaml_scalar_node_t {
     pub style: YamlScalarStyle
 }
 
-impl Copy for yaml_scalar_node_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_node_t {
@@ -165,9 +155,7 @@ pub struct yaml_sequence_node_t {
     pub style: YamlSequenceStyle
 }
 
-impl Copy for yaml_sequence_node_t {}
-
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_node_pair_t {
@@ -189,8 +177,6 @@ pub struct yaml_document_t {
     pub start_mark: yaml_mark_t,
     pub end_mark: yaml_mark_t,
 }
-
-impl Copy for yaml_document_t {}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
@@ -236,9 +222,7 @@ pub struct yaml_parser_t {
     pub document: *const yaml_document_t,
 }
 
-impl Copy for yaml_parser_t {}
-
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub enum yaml_break_t {
@@ -307,8 +291,6 @@ pub struct yaml_emitter_t {
     pub document: *const yaml_document_t
 }
 
-impl Copy for yaml_emitter_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_emitter_anchor_data_t {
@@ -316,8 +298,6 @@ pub struct yaml_emitter_anchor_data_t {
     pub anchor_length: size_t,
     pub alias: c_int
 }
-
-impl Copy for yaml_emitter_anchor_data_t {}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
@@ -327,8 +307,6 @@ pub struct yaml_emitter_tag_data_t {
     pub suffix: *const yaml_char_t,
     pub suffix_length: size_t
 }
-
-impl Copy for yaml_emitter_tag_data_t {}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
@@ -343,9 +321,7 @@ pub struct yaml_emitter_scalar_data_t {
     pub style: YamlScalarStyle,
 }
 
-impl Copy for yaml_emitter_scalar_data_t {}
-
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_event_t {
@@ -355,7 +331,7 @@ pub struct yaml_event_t {
     pub end_mark: yaml_mark_t
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_stream_start_event_t {
@@ -369,8 +345,6 @@ pub struct yaml_tag_directive_list_t {
     pub end: *const yaml_tag_directive_t,
 }
 
-impl Copy for yaml_tag_directive_list_t {}
-
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_document_start_event_t {
@@ -379,9 +353,7 @@ pub struct yaml_document_start_event_t {
     pub implicit: c_int
 }
 
-impl Copy for yaml_document_start_event_t {}
-
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_document_end_event_t {
@@ -394,8 +366,6 @@ pub struct yaml_alias_event_t {
     pub anchor: *const yaml_char_t
 }
 
-impl Copy for yaml_alias_event_t {}
-
 #[allow(non_camel_case_types)]
 pub struct yaml_sequence_start_event_t {
     pub anchor: *const yaml_char_t,
@@ -403,8 +373,6 @@ pub struct yaml_sequence_start_event_t {
     pub implicit: c_int,
     pub style: YamlSequenceStyle
 }
-
-impl Copy for yaml_sequence_start_event_t {}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
@@ -414,8 +382,6 @@ pub struct yaml_mapping_start_event_t {
     pub implicit: c_int,
     pub style: YamlSequenceStyle
 }
-
-impl Copy for yaml_mapping_start_event_t {}
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
@@ -429,15 +395,13 @@ pub struct yaml_scalar_event_t {
     pub style: YamlScalarStyle
 }
 
-impl Copy for yaml_scalar_event_t {}
-
 impl yaml_event_t {
     pub unsafe fn delete(&mut self) {
         yaml_event_delete(self);
     }
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 #[allow(non_camel_case_types)]
 pub struct yaml_version_directive_t {
@@ -451,8 +415,6 @@ pub struct yaml_tag_directive_t {
     pub handle: *const c_char,
     pub prefix: *const c_char
 }
-
-impl Copy for yaml_tag_directive_t {}
 
 #[link(name = "yaml")]
 extern {

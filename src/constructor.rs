@@ -33,7 +33,7 @@ pub enum YamlStandardData {
     YamlMapping(Vec<(YamlStandardData, YamlStandardData)>),
 }
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 pub struct YamlStandardConstructor;
 
 fn standard_error(message: String, mark: &YamlMark) -> YamlError {

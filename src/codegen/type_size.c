@@ -21,7 +21,7 @@ int main()
 
     printf("#[allow(non_camel_case_types)]\n");
     printf("#[repr(u%lu)]\n", ((size_t)(&dummy_event.data) - (size_t)(&dummy_event)) * 8);
-    printf("#[derive(Debug, PartialEq, Copy)]\n");
+    printf("#[derive(Debug, PartialEq, Clone, Copy)]\n");
     printf("pub enum yaml_event_type_t {\n");
     printf("    /** An empty event. */\n");
     printf("    YAML_NO_EVENT = 0,\n\n");
