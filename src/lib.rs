@@ -3,7 +3,6 @@
 #![feature(plugin)]
 #![feature(box_syntax)]
 
-#![feature(core)]
 #![feature(libc)]
 #![feature(slice_patterns)]
 
