@@ -2,6 +2,7 @@ libyaml-rust
 ============
 
 [![libyaml-rust on Travis CI][travis-image]][travis]
+[![](http://meritbadge.herokuapp.com/yaml)](https://crates.io/crates/yaml)
 
 [travis-image]: https://travis-ci.org/kimhyunkang/libyaml-rust.png
 [travis]: https://travis-ci.org/kimhyunkang/libyaml-rust
@@ -15,7 +16,9 @@ Dependencies
 ------------
 
 * LibYAML 0.1.4 or higher
-* Latest Rust compiler (0.11-pre)
+* Rust 1.1.0 nightly
+
+This crate does not work on Rust 1.0, due to the dependency on [libc](https://github.com/rust-lang/libc)
 
 Usage
 -----
