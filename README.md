@@ -2,10 +2,12 @@ libyaml-rust
 ============
 
 [![libyaml-rust on Travis CI][travis-image]][travis]
-[![](http://meritbadge.herokuapp.com/yaml)](https://crates.io/crates/yaml)
+[![yaml on crates.io][crates-image]][crate]
 
-[travis-image]: https://travis-ci.org/kimhyunkang/libyaml-rust.png
+[travis-image]: https://travis-ci.org/kimhyunkang/libyaml-rust.svg?branch=master
 [travis]: https://travis-ci.org/kimhyunkang/libyaml-rust
+[crates-image]: http://meritbadge.herokuapp.com/yaml
+[crate]: https://crates.io/crates/yaml
 
 [LibYAML][libyaml-home] bindings for [Rust][rust-home]
 
