@@ -2,7 +2,7 @@ use libc;
 
 use ffi;
 use error::{YamlError, YamlErrorContext, YamlMark};
-use event::YamlEvent;
+use event::{YamlEvent, YamlEventSpec};
 use document::{YamlDocument};
 use codecs;
 
@@ -22,8 +22,10 @@ impl<P:YamlParser> Iterator for YamlEventStream<P> {
     fn next(&mut self) -> Option<Result<YamlEvent, YamlError>> {
         unsafe {
             match self.parser.parse_event() {
-                Some(YamlEvent::YamlNoEvent) => None,
-                Some(evt) => Some(Ok(evt)),
+                Some(evt) => match evt.spec {
+                    YamlEventSpec::YamlNoEvent => None,
+                    _ => Some(Ok(evt))
+                },
                 None => Some(Err(self.parser.get_error()))
             }
         }
@@ -234,8 +236,8 @@ impl<'r> YamlIoParser<'r> {
 
 #[cfg(test)]
 mod test {
-    use event::{YamlEvent, YamlSequenceParam, YamlScalarParam};
-    use event::YamlEvent::*;
+    use event::{YamlEventSpec, YamlSequenceParam, YamlScalarParam};
+    use event::YamlEventSpec::*;
     use document::{YamlDocument, YamlNode};
     use parser;
     use parser::YamlParser;
@@ -262,7 +264,7 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
+        let stream: Result<Vec<YamlEventSpec>, YamlError> = parser.parse().map(|res| res.map(|evt| evt.spec)).collect();
 
         assert_eq!(expected, stream);
     }
@@ -284,7 +286,7 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
+        let stream: Result<Vec<YamlEventSpec>, YamlError> = parser.parse().map(|res| res.map(|evt| evt.spec)).collect();
 
         assert_eq!(expected, stream);
     }
@@ -306,7 +308,7 @@ mod test {
             YamlStreamEndEvent
         ]);
 
-        let stream: Result<Vec<YamlEvent>, YamlError> = parser.parse().collect();
+        let stream: Result<Vec<YamlEventSpec>, YamlError> = parser.parse().map(|res| res.map(|evt| evt.spec)).collect();
 
         assert_eq!(expected, stream);
     }
@@ -318,7 +320,10 @@ mod test {
         let mut stream = parser.parse();
 
         let stream_start = stream.next();
-        assert_eq!(Some(Ok(YamlStreamStartEvent(YamlUtf8Encoding))), stream_start);
+        match stream_start {
+            Some(Ok(evt)) => assert_eq!(YamlStreamStartEvent(YamlUtf8Encoding), evt.spec),
+            res => panic!("unexpected result: {:?}", res)
+        }
 
         let stream_err = stream.next();
         match stream_err {

@@ -6,6 +6,7 @@ use std::mem;
 use std::ptr;
 
 use codecs;
+use ::error::YamlMark;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct YamlVersionDirective {
@@ -49,7 +50,7 @@ pub struct YamlScalarParam {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum YamlEvent {
+pub enum YamlEventSpec {
     YamlNoEvent,
     YamlStreamStartEvent(YamlEncoding),
     YamlStreamEndEvent,
@@ -63,15 +64,30 @@ pub enum YamlEvent {
     YamlMappingEndEvent,
 }
 
+#[derive(Debug)]
+pub struct YamlEvent {
+    pub spec: YamlEventSpec,
+    pub start: YamlMark,
+    pub end: YamlMark
+}
+
 impl YamlEvent {
     pub unsafe fn load(event: &ffi::yaml_event_t) -> YamlEvent {
+        YamlEvent {
+            spec: YamlEvent::load_spec(event),
+            start: YamlMark::conv(&event.start_mark),
+            end: YamlMark::conv(&event.end_mark)
+        }
+    }
+
+    unsafe fn load_spec(event: &ffi::yaml_event_t) -> YamlEventSpec {
         match event.event_type {
-            YAML_NO_EVENT => YamlEvent::YamlNoEvent,
+            YAML_NO_EVENT => YamlEventSpec::YamlNoEvent,
             YAML_STREAM_START_EVENT => {
                 let evt_data: &ffi::yaml_stream_start_event_t = mem::transmute(&event.data);
-                YamlEvent::YamlStreamStartEvent(evt_data.encoding)
+                YamlEventSpec::YamlStreamStartEvent(evt_data.encoding)
             },
-            YAML_STREAM_END_EVENT => YamlEvent::YamlStreamEndEvent,
+            YAML_STREAM_END_EVENT => YamlEventSpec::YamlStreamEndEvent,
             YAML_DOCUMENT_START_EVENT => {
                 let evt_data: &ffi::yaml_document_start_event_t = mem::transmute(&event.data);
                 let vsn_dir = if evt_data.version_directive == ptr::null() {
@@ -91,25 +107,25 @@ impl YamlEvent {
                 }
                 let implicit = evt_data.implicit != 0;
 
-                YamlEvent::YamlDocumentStartEvent(vsn_dir, tag_dirs, implicit)
+                YamlEventSpec::YamlDocumentStartEvent(vsn_dir, tag_dirs, implicit)
             },
             YAML_DOCUMENT_END_EVENT => {
                 let evt_data: &ffi::yaml_document_end_event_t = mem::transmute(&event.data);
                 let implicit = evt_data.implicit != 0;
 
-                YamlEvent::YamlDocumentEndEvent(implicit)
+                YamlEventSpec::YamlDocumentEndEvent(implicit)
             },
             YAML_ALIAS_EVENT => {
                 let evt_data: &ffi::yaml_alias_event_t = mem::transmute(&event.data);
                 let anchor = codecs::decode_c_str(evt_data.anchor).unwrap();
 
-                YamlEvent::YamlAliasEvent(anchor)
+                YamlEventSpec::YamlAliasEvent(anchor)
             },
             YAML_SCALAR_EVENT => {
                 let evt_data: &ffi::yaml_scalar_event_t = mem::transmute(&event.data);
                 let value = codecs::decode_buf(evt_data.value, evt_data.length).unwrap();
 
-                YamlEvent::YamlScalarEvent(YamlScalarParam {
+                YamlEventSpec::YamlScalarEvent(YamlScalarParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     value: value,
@@ -121,25 +137,25 @@ impl YamlEvent {
             YAML_SEQUENCE_START_EVENT => {
                 let evt_data: &ffi::yaml_sequence_start_event_t = mem::transmute(&event.data);
 
-                YamlEvent::YamlSequenceStartEvent(YamlSequenceParam {
+                YamlEventSpec::YamlSequenceStartEvent(YamlSequenceParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })
             },
-            YAML_SEQUENCE_END_EVENT => YamlEvent::YamlSequenceEndEvent,
+            YAML_SEQUENCE_END_EVENT => YamlEventSpec::YamlSequenceEndEvent,
             YAML_MAPPING_START_EVENT => {
                 let evt_data: &ffi::yaml_mapping_start_event_t = mem::transmute(&event.data);
 
-                YamlEvent::YamlMappingStartEvent(YamlSequenceParam {
+                YamlEventSpec::YamlMappingStartEvent(YamlSequenceParam {
                     anchor: codecs::decode_c_str(evt_data.anchor),
                     tag: codecs::decode_c_str(evt_data.tag),
                     implicit: evt_data.implicit != 0,
                     style: evt_data.style
                 })
             },
-            YAML_MAPPING_END_EVENT => YamlEvent::YamlMappingEndEvent
+            YAML_MAPPING_END_EVENT => YamlEventSpec::YamlMappingEndEvent
         }
     }
 }
