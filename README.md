@@ -18,7 +18,7 @@ Dependencies
 ------------
 
 * LibYAML 0.1.4 or higher
-* Rust 1.1.0 nightly
+* Rust 1.1.0 or higher
 
 This crate does not work on Rust 1.0, due to the dependency on [libc](https://github.com/rust-lang/libc)
 
