@@ -21,7 +21,7 @@ pub trait YamlConstructor<T, E> {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum YamlStandardData {
     YamlInteger(isize),
     YamlFloat(f64),
