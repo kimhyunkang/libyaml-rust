@@ -1,6 +1,4 @@
-#![feature(path_ext)]
-
-use std::fs::{File, PathExt};
+use std::fs::File;
 use std::io::{stderr, Write};
 use std::process::{Command, Output};
 use std::path::Path;
