@@ -300,7 +300,7 @@ mod test {
                 match value {
                     Ok(YamlSequence(seq)) => {
                         match &seq[..] {
-                            [YamlFloat(f1), YamlFloat(f2), YamlFloat(f3), YamlFloat(f4)] => {
+                            &[YamlFloat(f1), YamlFloat(f2), YamlFloat(f3), YamlFloat(f4)] => {
                                 assert!((f1 - 0.3).abs() < 1.0e-6);
                                 assert!((f2 + 0.4) < 1.0e-6);
                                 assert!((f3 - 1e+2) < 1.0e-6);
