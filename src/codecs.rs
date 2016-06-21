@@ -27,4 +27,3 @@ pub fn decode_buf(buf: *const ffi::yaml_char_t, length: libc::size_t) -> Option<
         }
     }
 }
-

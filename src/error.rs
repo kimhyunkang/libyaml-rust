@@ -3,7 +3,6 @@ use std::io;
 use std::fmt;
 use ffi;
 use ffi::YamlErrorType;
-use ffi::YamlErrorType::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct YamlMark {
@@ -32,7 +31,7 @@ pub struct YamlErrorContext {
 
 #[derive(Debug)]
 pub struct YamlError {
-    pub kind: ffi::YamlErrorType,
+    pub kind: YamlErrorType,
     pub problem: Option<String>,
     pub io_error: Option<io::Error>,
     pub context: Option<YamlErrorContext>
@@ -51,14 +50,14 @@ impl PartialEq for YamlError {
 impl Error for YamlError {
     fn description(&self) -> &str {
         match self.kind {
-            YAML_NO_ERROR => "No error is produced",
-            YAML_MEMORY_ERROR => "Cannot allocate or reallocate a block of memory",
-            YAML_READER_ERROR => "Cannot read or decode the input stream",
-            YAML_SCANNER_ERROR => "Cannot scan the input stream",
-            YAML_PARSER_ERROR => "Cannot parse the input stream",
-            YAML_COMPOSER_ERROR => "Cannot compose a YAML document",
-            YAML_WRITER_ERROR => "Cannot write to the output stream",
-            YAML_EMITTER_ERROR => "Cannot emit a YAML stream",
+            YamlErrorType::YAML_NO_ERROR => "No error is produced",
+            YamlErrorType::YAML_MEMORY_ERROR => "Cannot allocate or reallocate a block of memory",
+            YamlErrorType::YAML_READER_ERROR => "Cannot read or decode the input stream",
+            YamlErrorType::YAML_SCANNER_ERROR => "Cannot scan the input stream",
+            YamlErrorType::YAML_PARSER_ERROR => "Cannot parse the input stream",
+            YamlErrorType::YAML_COMPOSER_ERROR => "Cannot compose a YAML document",
+            YamlErrorType::YAML_WRITER_ERROR => "Cannot write to the output stream",
+            YamlErrorType::YAML_EMITTER_ERROR => "Cannot emit a YAML stream",
         }
     }
 
@@ -71,7 +70,7 @@ impl Error for YamlError {
 }
 
 impl YamlError {
-    pub fn new(kind: ffi::YamlErrorType, problem: Option<String>) -> YamlError {
+    pub fn new(kind: YamlErrorType, problem: Option<String>) -> YamlError {
         YamlError {
             kind: kind,
             problem: problem,
