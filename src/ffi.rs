@@ -417,6 +417,7 @@ pub struct yaml_tag_directive_t {
 }
 
 #[link(name = "yaml")]
+#[allow(improper_ctypes)]
 extern {
     pub fn yaml_get_version_string() -> *const c_char;
     pub fn yaml_get_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int) -> c_void;
