@@ -13,5 +13,5 @@ keywords = ["yaml", "libyaml"]
 license = "MIT"
 
 [dependencies]
-regex = "~0.1.12"
-regex_macros = "~0.1.6"
+regex = "0.2"
+regex_macros = "0.2"
