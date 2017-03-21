@@ -32,8 +32,20 @@ pub enum YamlStandardData {
     YamlMapping(Vec<(YamlStandardData, YamlStandardData)>),
 }
 
-#[derive(Clone, Copy)]
-pub struct YamlStandardConstructor;
+#[derive(Clone)]
+pub struct YamlStandardConstructor {
+    dec_int_pat:Regex,
+    oct_int_pat:Regex,
+    hex_int_pat:Regex,
+    bin_int_pat:Regex,
+    flt_pat:Regex,
+    pos_inf_pat:Regex,
+    neg_inf_pat:Regex,
+    nan_pat:Regex,
+    null_pat:Regex,
+    true_pat:Regex,
+    false_pat:Regex
+}
 
 fn standard_error(message: String, mark: &YamlMark) -> YamlError {
     let context = YamlErrorContext {
@@ -65,7 +77,19 @@ fn take(iter: &mut Iterator<Item=char>, n: usize) -> String
 
 impl YamlStandardConstructor {
     pub fn new() -> YamlStandardConstructor {
-        YamlStandardConstructor
+        YamlStandardConstructor {
+            dec_int_pat: Regex::new(r"^[-+]?(0|[1-9][0-9_]*)$").unwrap(),
+            oct_int_pat: Regex::new(r"^([-+]?)0o?([0-7_]+)$").unwrap(),
+            hex_int_pat: Regex::new(r"^([-+]?)0x([0-9a-fA-F_]+)$").unwrap(),
+            bin_int_pat: Regex::new(r"^([-+]?)0b([0-1_]+)$").unwrap(),
+            flt_pat: Regex::new(r"^([-+]?)(\.[0-9]+|[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?)$").unwrap(),
+            pos_inf_pat: Regex::new(r"^[+]?(\.inf|\.Inf|\.INF)$").unwrap(),
+            neg_inf_pat: Regex::new(r"^-(\.inf|\.Inf|\.INF)$").unwrap(),
+            nan_pat: Regex::new(r"^(\.nan|\.NaN|\.NAN)$").unwrap(),
+            null_pat: Regex::new(r"^(null|Null|NULL|~)$").unwrap(),
+            true_pat: Regex::new(r"^(true|True|TRUE|yes|Yes|YES)$").unwrap(),
+            false_pat: Regex::new(r"^(false|False|FALSE|no|No|NO)$").unwrap()
+        }
     }
 
     fn parse_double_quoted(value: &str, mark: &YamlMark) -> Result<String, YamlError> {
@@ -162,18 +186,6 @@ fn parse_float(sign: &str, data: &str) -> f64 {
     }
 }
 
-static DEC_INT:Regex = regex!(r"^[-+]?(0|[1-9][0-9_]*)$");
-static OCT_INT:Regex = regex!(r"^([-+]?)0o?([0-7_]+)$");
-static HEX_INT:Regex = regex!(r"^([-+]?)0x([0-9a-fA-F_]+)$");
-static BIN_INT:Regex = regex!(r"^([-+]?)0b([0-1_]+)$");
-static FLOAT_PATTERN:Regex = regex!(r"^([-+]?)(\.[0-9]+|[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?)$");
-static POS_INF:Regex = regex!(r"^[+]?(\.inf|\.Inf|\.INF)$");
-static NEG_INF:Regex = regex!(r"^-(\.inf|\.Inf|\.INF)$");
-static NAN_PATTERN:Regex = regex!(r"^(\.nan|\.NaN|\.NAN)$");
-static NULL_PATTERN:Regex = regex!(r"^(null|Null|NULL|~)$");
-static TRUE_PATTERN:Regex = regex!(r"^(true|True|TRUE|yes|Yes|YES)$");
-static FALSE_PATTERN:Regex = regex!(r"^(false|False|FALSE|no|No|NO)$");
-
 impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
     fn construct_scalar(&self, scalar: document::YamlScalarData) -> Result<YamlStandardData, YamlError> {
         let value = scalar.get_value();
@@ -181,43 +193,43 @@ impl YamlConstructor<YamlStandardData, YamlError> for YamlStandardConstructor {
 
         match scalar.style() {
             YamlScalarStyle::YamlPlainScalarStyle => {
-                match BIN_INT.captures(&value[..]) {
+                match self.bin_int_pat.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 &caps[1], &caps[2], 2))),
                     None => ()
                 };
-                match OCT_INT.captures(&value[..]) {
+                match self.oct_int_pat.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 &caps[1], &caps[2], 8))),
                     None => ()
                 };
-                match HEX_INT.captures(&value[..]) {
+                match self.hex_int_pat.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlInteger(parse_int(
                                 &caps[1], &caps[2], 16))),
                     None => ()
                 };
 
-                if DEC_INT.is_match(&value[..]) {
+                if self.dec_int_pat.is_match(&value[..]) {
                     return Ok(YamlStandardData::YamlInteger(parse_int("", &value[..], 10)));
                 }
 
-                match FLOAT_PATTERN.captures(&value[..]) {
+                match self.flt_pat.captures(&value[..]) {
                     Some(caps) => return Ok(YamlStandardData::YamlFloat(parse_float(
                                 &caps[1], &caps[2]))),
                     None => ()
                 };
 
-                if POS_INF.is_match(&value[..]) {
+                if self.pos_inf_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::INFINITY))
-                } else if NEG_INF.is_match(&value[..]) {
+                } else if self.neg_inf_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::NEG_INFINITY))
-                } else if NAN_PATTERN.is_match(&value[..]) {
+                } else if self.nan_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlFloat(f64::NAN))
-                } else if NULL_PATTERN.is_match(&value[..]) {
+                } else if self.null_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlNull)
-                } else if TRUE_PATTERN.is_match(&value[..]) {
+                } else if self.true_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlBool(true))
-                } else if FALSE_PATTERN.is_match(&value[..]) {
+                } else if self.false_pat.is_match(&value[..]) {
                     Ok(YamlStandardData::YamlBool(false))
                 } else {
                     Ok(YamlStandardData::YamlString(value))

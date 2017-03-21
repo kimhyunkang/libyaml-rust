@@ -14,4 +14,3 @@ license = "MIT"
 
 [dependencies]
 regex = "0.2"
-regex_macros = "0.2"
