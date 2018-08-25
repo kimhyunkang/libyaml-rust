@@ -13,6 +13,7 @@ pub type yaml_read_handler_t = extern fn(data: *mut YamlIoParser, buffer: *mut u
 pub type yaml_write_handler_t = extern fn(data: *mut YamlEmitter, buffer: *const u8, size: size_t) -> c_int;
 
 #[repr(C)]
+#[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum YamlErrorType {
     /** No error is produced. */
@@ -116,8 +117,9 @@ pub struct yaml_stack_t {
     pub top: *const c_void
 }
 
-#[derive(Clone, Copy)]
 #[repr(C)]
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy)]
 pub enum yaml_node_type_t {
     /** An empty node. */
     YAML_NO_NODE = 0,
