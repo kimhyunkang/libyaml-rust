@@ -54,13 +54,14 @@ fn main()
     let mut codegen_cmd = Command::new(&out_file);
     let output = run_cmd(&mut codegen_cmd);
 
-    let mut f = match File::create("src/type_size.rs") {
+    let generated_file = out_dir.join("type_size.rs");
+    let mut f = match File::create(generated_file) {
         Ok(f) => f,
-        Err(e) => panic!("Could not open file src/type_size.rs: {}", e)
+        Err(e) => panic!("Could not open file $OUT_DIR/type_size.rs: {}", e)
     };
 
     match f.write_all(&output.stdout[..]) {
-        Err(e) => panic!("Could not write to src/type_size.rs: {}", e),
+        Err(e) => panic!("Could not write to $OUT_DIR/type_size.rs: {}", e),
         Ok(_) => ()
     }
 }

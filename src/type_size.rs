@@ -1,0 +1,1 @@
+include!(concat!(env!("OUT_DIR"), "/type_size.rs"));

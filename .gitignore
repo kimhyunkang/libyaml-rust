@@ -1,5 +1,7 @@
 .gitconfig
 target
-src/type_size.rs
 .DS_Store
 Cargo.lock
+
+# IntelliJ project directory
+/.idea
