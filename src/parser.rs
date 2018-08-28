@@ -96,7 +96,7 @@ pub trait YamlParser: Sized {
 
 extern fn handle_reader_cb(data: *mut YamlIoParser, buffer: *mut u8, size: libc::size_t, size_read: *mut libc::size_t) -> libc::c_int {
     unsafe {
-        let mut buf = slice::from_raw_parts_mut(buffer, size as usize);
+        let buf = slice::from_raw_parts_mut(buffer, size as usize);
         let parser = &mut *data;
         match parser.reader.read(buf) {
             Ok(size) => {
@@ -177,10 +177,10 @@ impl<'r> YamlParser for YamlByteParser<'r> {
 impl<'r> YamlByteParser<'r> {
     pub fn init(bytes: &'r [u8], encoding: ffi::YamlEncoding) -> Box<YamlByteParser<'r>> {
         unsafe {
-            let mut parser = box YamlByteParser {
+            let mut parser = Box::new(YamlByteParser {
                 base_parser: YamlBaseParser::new(),
                 data: PhantomData
-            };
+            });
 
             if !parser.base_parser.initialize() {
                 panic!("failed to initialize yaml_parser_t");
@@ -215,11 +215,11 @@ impl<'r> YamlParser for YamlIoParser<'r> {
 impl<'r> YamlIoParser<'r> {
     pub fn init<'a>(reader: &'a mut Read, encoding: ffi::YamlEncoding) -> Box<YamlIoParser<'a>> {
         unsafe {
-            let mut parser = box YamlIoParser {
+            let mut parser = Box::new(YamlIoParser {
                 base_parser: YamlBaseParser::new(),
                 reader: reader,
                 io_error: None
-            };
+            });
 
             if !parser.base_parser.initialize() {
                 panic!("failed to initialize yaml_parser_t");

@@ -14,9 +14,9 @@ pub struct YamlDocument {
 
 impl YamlDocument {
     pub unsafe fn parser_load(parser: &mut ffi::yaml_parser_t) -> Option<Box<YamlDocument>> {
-        let mut document = box YamlDocument {
+        let mut document = Box::new(YamlDocument {
             document_mem: mem::uninitialized()
-        };
+        });
 
         if ffi::yaml_parser_load(parser, &mut document.document_mem) == 0 {
             None

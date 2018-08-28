@@ -1,9 +1,5 @@
 #![crate_name = "yaml"]
 #![crate_type = "lib"]
-#![feature(box_syntax)]
-
-#![feature(libc)]
-#![feature(slice_patterns)]
 
 extern crate libc;
 

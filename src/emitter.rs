@@ -63,11 +63,11 @@ fn to_c_str(s: &str) -> Result<CString, YamlError> {
 impl<'r> YamlEmitter<'r> {
     pub fn init<'a>(writer: &'a mut Write) -> Box<YamlEmitter<'a>> {
         unsafe {
-            let mut emitter = box YamlEmitter {
+            let mut emitter = Box::new(YamlEmitter {
                 base_emitter: YamlBaseEmitter::new(),
                 writer: writer,
                 io_error: None
-            };
+            });
 
             if ffi::yaml_emitter_initialize(&mut emitter.base_emitter.emitter_mem) == 0 {
                 panic!("failed to initialize yaml_emitter_t");
