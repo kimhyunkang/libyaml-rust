@@ -81,13 +81,13 @@ mod test {
     #[test]
     fn test_version_string() {
         let vsn = super::version_string();
-        assert!("0.1.4".to_string() <= vsn && vsn < "0.2".to_string())
+        assert!("0.1.4".to_string() <= vsn && vsn < "0.3".to_string())
     }
 
     #[test]
     fn test_version() {
         let vsn = super::version();
-        assert!((0, 1, 4) <= vsn && vsn < (0, 2, 0))
+        assert!((0, 1, 4) <= vsn && vsn < (0, 3, 0))
     }
 
     #[test]
