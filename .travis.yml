@@ -1,13 +1,19 @@
 language: rust
+
 rust:
   - stable
   - beta
   - nightly
+
 matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
+
 os:
   - windows
   - linux
   - osx
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then mkdir ./libyaml && cd ./libyaml && curl -O https://pyyaml.org/download/libyaml/yaml-0.2.1.tar.gz && 7z x yaml-0.2.1.tar.gz && 7z x yaml-0.2.1.tar && cd yaml-0.2.1 && cmake .; fi
